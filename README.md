@@ -99,13 +99,22 @@ The devoted angler. You have forsaken all worldly possessions in pursuit of the 
     * **Description:** Dedicate your sacred might solely to purging the impure Undead from the world.
     * **Key Prohibition:** You may ONLY land the killing blow on creatures of the 'Undead' type.
 
-### Priest - The Testament of Purity
+### Priest
 
-* **Description:** A true vessel of the Light, sworn off the corrupting whispers of the Shadow.
-* **Key Prohibitions:**
-    * No weapons or physical attacks (including wands).
-    * No learning or using Shadow magic spells or talents.
-    * No killing Humanoid creatures.
+* **Testament of Purity: The Light Wielder**
+   * **Description:** A true vessel of the Light, sworn off the corrupting whispers of the Shadow.
+   * **Key Prohibitions:**
+       * No weapons or physical attacks (including wands).
+       * No learning or using Shadow magic spells or talents.
+       * No killing Humanoid creatures.
+
+* **Covenant of Purity: The Shadow Bender**
+  * **Description:** A vessel of Shadow, only using the Light for offensive purposes, only relying on the defenses of Shadow.
+  * **Key Prohibitions:**
+      * No using Discipline spells.
+      * With the exception of Smite, no other Holy spells may be used.
+      * No Holy damage wands.
+      * Talents may be bent to your will and spent in any tree, but learning active spells from Holy or Discipline trees is forbidden.
 
 ### Rogue
 
@@ -122,21 +131,31 @@ The devoted angler. You have forsaken all worldly possessions in pursuit of the 
         * You may not equip any item in your off-hand slot.
         * You may not equip any ranged weapon.
 
-### Shaman - Communion of Purity
+### Shaman
 
-* **Description:** The Spirit Walker. Your power flows purely from your spells and maintaining active totems in combat. No weapons of any kind.
-* **Key Prohibitions:**
-    * You may NOT equip any weapons of any kind.
-    * You must always maintain at least one active totem while in combat (after totems are unlocked).
+* **Communion of Purity: The elemental master**
+   * **Description:** The Spirit Walker. Your power flows purely from your spells and maintaining active totems in combat. No weapons of any kind.
+   * **Key Prohibitions:**
+      * You may NOT equip any weapons of any kind.
+      * You must always maintain at least one active totem while in combat (after totems are unlocked).
 
-### Warlock - Grimoire of Purity
+### Warlock
 
-* **Description:** A crazed demonologist focused on fire, brimstone, and demons. Souls are fuel for summoning and nothing else.
-* **Key Prohibitions:**
-    * No learning or using forbidden spells (Shadow, most Curses, etc.).
-    * No spending points in the Affliction talent tree.
-    * Soul Shards may ONLY be used to summon or subjugate demons.
-    * Healthstones and Soulstones are forbidden.
+* **Grimoire of Purity: The Crazed Demonologist**
+   * **Description:** A crazed demonologist focused on fire, brimstone, and demons. Souls are fuel for summoning and nothing else.
+   * **Key Prohibitions:**
+      * No learning or using forbidden spells (Shadow, most Curses, etc.).
+      * No spending points in the Affliction talent tree.
+      * Soul Shards may ONLY be used to summon or subjugate demons.
+      * Healthstones and Soulstones are forbidden.
+
+* **Sacrament of Purity: The Cursed with Pride**
+   * **Description:** Refusing the help of lesser creatures, your sole existence it to cause pain and suffering, even if that means to yourself.
+   * **Key Prohibitions:**
+      * No demons may be summoned (Felsteed allowed).
+      * No drinking or using mana potions.
+      * No spending points in Demonology tree.
+      * Mana must only be regenerated passively, via Life Tap, or via Drain Mana.
 
 ### Warrior
 
