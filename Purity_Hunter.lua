@@ -83,7 +83,6 @@ GetRulesText = function()
                 end
             end
         elseif event == "PLAYER_EQUIPMENT_CHANGED" then Purity:CheckWeaponState()
-        
         elseif event == "PLAYER_LEVEL_UP" then
             local newLevel = ...
             if newLevel == 10 then
@@ -91,21 +90,31 @@ GetRulesText = function()
             elseif newLevel >= 11 and not IsSpellKnown(1515) then
                 Purity:Violation("Failed to learn Tame Beast before level 11, breaking your bond.")
             end
-
         elseif event == "COMBAT_LOG_EVENT_UNFILTERED" then
             local _, subEvent, _, sourceGUID, _, _, _, _, _, _, _, spellId, spellName = CombatLogGetCurrentEventInfo()
-
             if sourceGUID ~= UnitGUID("player") then return end
-
             if (subEvent == "SPELL_CAST_SUCCESS" or subEvent == "RANGE_DAMAGE") and self:IsSpellForbidden(spellId) then
                 Purity:Violation("Used a forbidden ranged ability or damaging trap:\n" .. spellName)
                 return
             end
-
             if IsSpellKnown(1515) then
                 if string.find(subEvent, "_DAMAGE") then
                     if not UnitExists("pet") then
                         Purity:Violation("Dealt damage without your animal companion by your side, breaking your sacred bond.")
+                    end
+                end
+            end
+        elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
+            local unit, _, _, _, spellId = ...
+            if unit == "player" then
+                -- Stat tracking for Mend Pet
+                local mendPetIDs = { [136]=true,[3111]=true,[13542]=true,[3661]=true,[3662]=true,[13543]=true,[13544]=true }
+                if mendPetIDs[spellId] then
+                    local db = Purity:GetDB()
+                    db.challengeStats = db.challengeStats or {}
+                    db.challengeStats.mendPetCasts = (db.challengeStats.mendPetCasts or 0) + 1
+					if _G["PurityCharacterPanel"] and _G["PurityCharacterPanel"]:IsShown() then
+                        _G["UpdateCharacterPurity"]()
                     end
                 end
             end
@@ -227,8 +236,22 @@ HunterModule.challenges.quiver = {
                     return
                 end
             end
+        elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
+            local unit, _, _, _, spellId = ...
+            if unit == "player" then
+                -- Stat tracking for Aimed Shot
+                local aimedShotIDs = { [19434]=true,[20900]=true,[20902]=true,[20903]=true,[20904]=true,[20901]=true }
+                if aimedShotIDs[spellId] then
+                    local db = Purity:GetDB()
+                    db.challengeStats = db.challengeStats or {}
+                    db.challengeStats.aimedShotCasts = (db.challengeStats.aimedShotCasts or 0) + 1
+					if _G["PurityCharacterPanel"] and _G["PurityCharacterPanel"]:IsShown() then
+                        _G["UpdateCharacterPurity"]()
+                    end
+                end
+            end
         end
-    end
+    end,
 }
 
 Purity.ClassModules = Purity.ClassModules or {}

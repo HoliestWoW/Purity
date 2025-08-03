@@ -208,6 +208,20 @@ function MageModule:EventHandler(event, ...)
                 end
             end
         end
+    elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
+        local unit, _, _, _, spellId = ...
+        if unit == "player" then
+            -- Stat tracking for primary spells
+            local primarySpellIDs = { [133]=true,[143]=true,[145]=true,[3140]=true,[8400]=true,[8401]=true,[8402]=true,[10148]=true,[10149]=true,[10150]=true,[10151]=true,[116]=true,[205]=true,[837]=true,[7322]=true,[8406]=true,[8407]=true,[8408]=true,[10179]=true,[10180]=true,[10181]=true,[5143]=true,[5144]=true,[5145]=true,[8416]=true,[8417]=true,[10211]=true,[10212]=true,[25345]=true }
+            if primarySpellIDs[spellId] then
+                local db = Purity:GetDB()
+                db.challengeStats = db.challengeStats or {}
+                db.challengeStats.primarySpellCasts = (db.challengeStats.primarySpellCasts or 0) + 1
+				if _G["PurityCharacterPanel"] and _G["PurityCharacterPanel"]:IsShown() then
+                        _G["UpdateCharacterPurity"]()
+                    end
+            end
+        end
     end
 end
 

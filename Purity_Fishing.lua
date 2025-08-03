@@ -102,28 +102,20 @@ end
 
 function FishingModule:EventHandler(event, ...)
     local currentDB = Purity:GetDB()
-    if not currentDB.isOptedIn or currentDB.status == "Not Participating" then
-        return
-    end
+    if not currentDB.isOptedIn or currentDB.status == "Not Participating" then return end
 
-    -- This event reliably fires when a container in your bags is used.
     if event == "ITEM_LOCK_CHANGED" then
         local bagId, slotId = ...
-        -- We add this check to make sure we only proceed when we have valid bag and slot data.
-        -- This prevents the errors we saw before.
         if type(bagId) == "number" and type(slotId) == "number" then
             local itemLink = C_Container.GetContainerItemLink(bagId, slotId)
             if itemLink then
                 local itemID = tonumber(string.match(itemLink, "item:(%d+)"))
-                -- If the used item is a fishable container, set our flag.
                 if itemID and FISHABLE_CONTAINER_IDS[itemID] then
                     self.isExpectingLootFromContainer = true
                 end
             end
         end
-    end
-
-    if event == "LOOT_READY" then
+    elseif event == "LOOT_READY" then
         if self.isExpectingLootFromContainer then
             local numItems = GetNumLootItems()
             for i = 1, numItems do
@@ -132,9 +124,7 @@ function FishingModule:EventHandler(event, ...)
                     local itemName, _, _, _, _, itemType = GetItemInfo(itemLink)
                     if itemName and (itemType == "Armor" or itemType == "Weapon") then
                         local cleanItemName = self:SanitizeItemName(itemName)
-                        if cleanItemName then
-                            currentDB.fishingFishedItemLinks[cleanItemName] = true
-                        end
+                        if cleanItemName then currentDB.fishingFishedItemLinks[cleanItemName] = true end
                     end
                 end
             end
@@ -142,27 +132,29 @@ function FishingModule:EventHandler(event, ...)
     elseif event == "LOOT_CLOSED" then
         self.isExpectingLootFromContainer = false
     elseif event == "CHAT_MSG_LOOT" then
-        local _, _, itemLink = ...
+        local message = ...
+        local itemLink = string.match(message, "You receive loot: (.+).")
         if not itemLink then return end
-        local itemName = GetItemInfo(itemLink)
+        local itemName, _, _, _, _, _, _, _, _, _, spellId = GetItemInfo(itemLink)
         local itemID = tonumber(string.match(itemLink, "item:(%d+)"))
         if not itemName or not itemID then return end
 
         if DIRECT_FISHED_EQUIPPABLES[itemID] then
             local cleanItemName = self:SanitizeItemName(itemName)
-            if cleanItemName then
-                currentDB.fishingFishedItemLinks[cleanItemName] = true
+            if cleanItemName then currentDB.fishingFishedItemLinks[cleanItemName] = true end
+        end
+        -- Stat tracking for trunks
+        if itemName and string.find(itemName, "Trunk") then
+            local db = Purity:GetDB()
+            db.challengeStats = db.challengeStats or {}
+            db.challengeStats.trunksFished = (db.challengeStats.trunksFished or 0) + 1
+			if _G["PurityCharacterPanel"] and _G["PurityCharacterPanel"]:IsShown() then
+                _G["UpdateCharacterPurity"]()
             end
         end
     elseif event == "PLAYER_EQUIPMENT_CHANGED" then
         Purity:CheckWeaponState()
-        local inventorySlots = {
-            INVSLOT_HEAD, INVSLOT_NECK, INVSLOT_SHOULDER, INVSLOT_CHEST,
-            INVSLOT_WAIST, INVSLOT_LEGS, INVSLOT_FEET, INVSLOT_WRIST,
-            INVSLOT_HAND, INVSLOT_FINGER1, INVSLOT_FINGER2, INVSLOT_TRINKET1,
-            INVSLOT_TRINKET2, INVSLOT_BACK, INVSLOT_MAINHAND, INVSLOT_OFFHAND,
-            INVSLOT_RANGED, INVSLOT_TABARD
-        }
+        local inventorySlots = { INSLOT_HEAD, INSLOT_NECK, INSLOT_SHOULDER, INSLOT_CHEST, INSLOT_WAIST, INSLOT_LEGS, INSLOT_FEET, INSLOT_WRIST, INSLOT_HAND, INSLOT_FINGER1, INSLOT_FINGER2, INSLOT_TRINKET1, INSLOT_TRINKET2, INSLOT_BACK, INSLOT_MAINHAND, INSLOT_OFFHAND, INSLOT_RANGED, INSLOT_TABARD }
         for _, slotId in ipairs(inventorySlots) do
             local itemLink = GetInventoryItemLink("player", slotId)
             if itemLink and self:IsItemForbidden(itemLink) then

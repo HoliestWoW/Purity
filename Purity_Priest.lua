@@ -17,14 +17,29 @@ local TestamentOfPurity = {
     optInWarningText = "|cffff0000IMPORTANT: This challenge forbids all weapons. You must unequip your mace before you begin.|r",
 
     _forbiddenSpellIDs = {
-        [589] = "Shadow Word: Pain", [2096] = "Mind Vision", [8122] = "Psychic Scream", [586] = "Fade",
-        [9035] = "Hex of Weakness", [8092] = "Mind Blast", [2652] = "Touch of Weakness", [2944] = "Devouring Plague",
-        [13896] = "Feedback", [453] = "Mind Soothe", [18137] = "Shadowguard", [8129] = "Mana Burn",
-        [605] = "Mind Control", [976] = "Shadow Protection",
-        [5019] = "Shoot", [6603] = "Attack", [5009] = "Wands"
+        [589] = "Shadow Word: Pain (Rank 1)", [594] = "Shadow Word: Pain (Rank 2)", [970] = "Shadow Word: Pain (Rank 3)", [992] = "Shadow Word: Pain (Rank 4)", [2767] = "Shadow Word: Pain (Rank 5)", [10892] = "Shadow Word: Pain (Rank 6)", [10893] = "Shadow Word: Pain (Rank 7)", [10894] = "Shadow Word: Pain (Rank 8)",
+		[2096] = "Mind Vision (Rank 1)", [10909] = "Mind Vision (Rank 2)",
+		[8122] = "Psychic Scream (Rank 1)", [8124] = "Psychic Scream (Rank 2)", [10888] = "Psychic Scream (Rank 3)", [10890] = "Psychic Scream (Rank 4)",
+		[586] = "Fade (Rank 1)", [9578] = "Fade (Rank 2)", [9579] = "Fade (Rank 3)", [9592] = "Fade (Rank 4)", [10941] = "Fade (Rank 5)", [10942] = "Fade (Rank 6)",
+        [9035] = "Hex of Weakness (Rank 1)", [19281] = "Hex of Weakness (Rank 2)", [19282] = "Hex of Weakness (Rank 3)", [19283] = "Hex of Weakness (Rank 4)", [19284] = "Hex of Weakness (Rank 5)", [19285] = "Hex of Weakness (Rank 6)",
+		[8092] = "Mind Blast (Rank 1)", [8102] = "Mind Blast (Rank 2)", [8103] = "Mind Blast (Rank 3)", [8104] = "Mind Blast (Rank 4)", [8105] = "Mind Blast (Rank 5)", [8106] = "Mind Blast (Rank 6)", [10945] = "Mind Blast (Rank 7)", [10946] = "Mind Blast (Rank 8)", [10947] = "Mind Blast (Rank 9)",
+		[2652] = "Touch of Weakness (Rank 1)", [19261] = "Touch of Weakness (Rank 2)", [19262] = "Touch of Weakness (Rank 3)", [19264] = "Touch of Weakness (Rank 4)", [19265] = "Touch of Weakness (Rank 5)", [19266] = "Touch of Weakness (Rank 6)",
+		[2944] = "Devouring Plague",
+        [13896] = "Feedback",
+		[453] = "Mind Soothe",
+		[18137] = "Shadowguard",
+		[8129] = "Mana Burn",
+        [605] = "Mind Control",
+		[976] = "Shadow Protection",
+        [5019] = "Shoot",
+		[6603] = "Attack",
+		[5009] = "Wands"
     },
     _forbiddenTalentSpellIDs = {
-        [15286] = "Vampiric Embrace", [15487] = "Silence", [15473] = "Shadowform", [15407] = "Mind Flay"
+        [15286] = "Vampiric Embrace",
+		[15487] = "Silence",
+		[15473] = "Shadowform",
+		[15407] = "Mind Flay"
     },
 
     GetRulesText = function(self)
@@ -114,9 +129,21 @@ local TestamentOfPurity = {
             end
         elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
             local unit, castName, _, _, spellId = ...
-            if unit == "player" and self:IsSpellForbidden(spellId) then
-                Purity:Violation("Used a forbidden spell:\n" .. (castName or "Unknown Spell"))
-                return
+            if unit == "player" then
+                if self:IsSpellForbidden(spellId) then
+                    Purity:Violation("Used a forbidden spell:\n" .. (castName or "Unknown Spell"))
+                    return
+                end
+                -- Stat tracking for Smite
+                local smiteIDs = { [585]=true, [594]=true,[598]=true,[984]=true,[6060]=true,[10933]=true,[10934]=true }
+                if smiteIDs[spellId] then
+                    local db = Purity:GetDB()
+                    db.challengeStats = db.challengeStats or {}
+                    db.challengeStats.smiteCasts = (db.challengeStats.smiteCasts or 0) + 1
+					if _G["PurityCharacterPanel"] and _G["PurityCharacterPanel"]:IsShown() then
+                        _G["UpdateCharacterPurity"]()
+                    end
+                end
             end
         elseif event == "PLAYER_TALENT_UPDATE" or event == "SPELLS_CHANGED" then
             for id, name in pairs(self._forbiddenSpellIDs) do
@@ -237,9 +264,21 @@ local CovenantOfPurity = {
             end
         elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
             local unit, castName, _, _, spellId = ...
-            if unit == "player" and self:IsSpellForbidden(spellId) then
-                Purity:Violation("Used a forbidden spell:\n" .. (castName or "Unknown Spell"))
-                return
+            if unit == "player" then
+                if self:IsSpellForbidden(spellId) then
+                    Purity:Violation("Used a forbidden spell:\n" .. (castName or "Unknown Spell"))
+                    return
+                end
+                -- Stat tracking for Mind Flay
+                local mindFlayIDs = { [15407]=true, [17311]=true, [17312]=true, [17313]=true, [17314]=true }
+                if mindFlayIDs[spellId] then
+                    local db = Purity:GetDB()
+                    db.challengeStats = db.challengeStats or {}
+                    db.challengeStats.mindFlayCasts = (db.challengeStats.mindFlayCasts or 0) + 1
+					if _G["PurityCharacterPanel"] and _G["PurityCharacterPanel"]:IsShown() then
+                        _G["UpdateCharacterPurity"]()
+                    end
+                end
             end
         elseif event == "PLAYER_TALENT_UPDATE" or event == "SPELLS_CHANGED" then
             for i = 1, GetNumSpellTabs() do

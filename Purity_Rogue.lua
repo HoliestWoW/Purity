@@ -71,25 +71,34 @@ RogueModule.challenges.contract = {
                     return
                 end
             end
-        end
-
-        if event == "PLAYER_REGEN_ENABLED" then
+        elseif event == "PLAYER_REGEN_ENABLED" then
             self.initiatedFromStealth = false
         elseif event == "PLAYER_REGEN_DISABLED" then
             if self.initiatedFromStealth then
                 Purity:Violation("Initiated combat from a stealthed state.")
             end
         elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
-            local unit, _, _, spellId = ...
-            if unit == "player" and not UnitAffectingCombat("player") then
-                local isStealthed = false
-                for i=1, 40 do
-                    local auraName = UnitAura("player", i)
-                    if not auraName then break end
-                    if auraName == "Stealth" then isStealthed = true; break; end
+            local unit, _, _, _, spellId = ...
+            if unit == "player" then
+                if not UnitAffectingCombat("player") then
+                    local isStealthed = false
+                    for i=1, 40 do
+                        local auraName = UnitAura("player", i)
+                        if not auraName then break end
+                        if auraName == "Stealth" then isStealthed = true; break; end
+                    end
+                    if isStealthed and UnitCanAttack("player", "target") and not self:IsSpellForbidden(spellId) then
+                        self.initiatedFromStealth = true
+                    end
                 end
-                if isStealthed and UnitCanAttack("player", "target") and not self:IsSpellForbidden(spellId) then
-                    self.initiatedFromStealth = true
+                local sinisterStrikeIDs = { [1752]=true, [1757]=true, [1758]=true, [1759]=true, [1760]=true, [8621]=true, [11293]=true, [11294]=true }
+                if sinisterStrikeIDs[spellId] then
+                    local db = Purity:GetDB()
+                    db.challengeStats = db.challengeStats or {}
+                    db.challengeStats.sinisterStrikeCasts = (db.challengeStats.sinisterStrikeCasts or 0) + 1
+					if _G["PurityCharacterPanel"] and _G["PurityCharacterPanel"]:IsShown() then
+                        _G["UpdateCharacterPurity"]()
+                    end
                 end
             end
         elseif event == "COMBAT_LOG_EVENT_UNFILTERED" then
@@ -159,6 +168,18 @@ RogueModule.challenges.foil = {
             end
         elseif event == "PLAYER_EQUIPMENT_CHANGED" then
             Purity:CheckWeaponState()
+        elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
+            local unit, _, _, _, spellId = ...
+            if unit == "player" then
+                if spellId == 14251 then
+                    local db = Purity:GetDB()
+                    db.challengeStats = db.challengeStats or {}
+                    db.challengeStats.riposteCasts = (db.challengeStats.riposteCasts or 0) + 1
+					if _G["PurityCharacterPanel"] and _G["PurityCharacterPanel"]:IsShown() then
+                        _G["UpdateCharacterPurity"]()
+                    end
+                end
+            end
         end
     end,
 }

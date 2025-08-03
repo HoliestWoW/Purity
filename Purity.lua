@@ -1,10 +1,13 @@
 -- Purity AddOn - Core
 
+BINDING_HEADER_PURITY = "Purity";
+BINDING_NAME_PURITY_TOGGLE = "Toggle Purity Window";
+
 if not Purity then
     Purity = {}
 end
 
-Purity.Version = "8.1.0"
+Purity.Version = "8.1.1"
 
 Purity.ADDON_PREFIX = "PURITYCOMMS"
 Purity.roster = {}
@@ -16,6 +19,7 @@ Purity.isTrainerHooked = false
 Purity.ClassModules = {}
 Purity.GlobalModules = {}
 Purity.selectedChallenge = nil
+Purity.hasUIBeenCreated = false
 
 local MAX_PLAYER_LEVEL = 60
 local isMonitoring = false
@@ -71,29 +75,29 @@ if Purity.OriginalDisplayDisplayTimePlayed == nil then
 end
 
 Purity.ChallengeCoefficients = {
-    ["Path of the Unburdened"] = 5.00,
-    ["Path of Resilience"] = 4.86,
-    ["Brand of Purity"] = 4.73,
-    ["Libram of Purity"] = 4.59,
-    ["Quiver of Purity"] = 4.45,
-    ["Fisherman's Folly"] = 4.32,
-    ["Path of Humility"] = 4.18,
-    ["Tome of Purity (Arcane)"] = 4.05,
-    ["Flame of Purity"] = 3.91,
-    ["Testament of Purity"] = 3.77,
-    ["Pact of Purity"] = 3.64,
-    ["Bond of Purity"] = 3.50,
-    ["Sacrament of Purity"] = 3.36,
-    ["Oath of Purity"] = 3.23,
-    ["Bulwark of Purity"] = 3.09,
-    ["Astrolabe of Purity"] = 2.95,
-    ["Contract of Purity"] = 2.82,
-    ["Communion of Purity"] = 2.68,
-    ["Grimoire of Purity"] = 2.55,
-    ["Covenant of Purity"] = 2.41,
-    ["Tome of Purity (Fire)"] = 2.27,
-    ["Tome of Purity (Frost)"] = 2.14,
-    ["Foil of Purity"] = 2.00
+	["Path of the Unburdened"] = 5.00,
+	["Path of Resilience"] = 4.86,
+	["Brand of Purity"] = 4.73,
+	["Quiver of Purity"] = 4.45,
+	["Path of Humility"] = 4.40,
+	["Fisherman's Folly"] = 4.32,
+	["Libram of Purity"] = 4.25,
+	["Tome of Purity (Arcane)"] = 4.05,
+	["Astrolabe of Purity"] = 4.00,
+	["Flame of Purity"] = 3.91,
+	["Sacrament of Purity"] = 3.85,
+	["Pact of Purity"] = 3.85,
+	["Bond of Purity"] = 3.80,
+	["Testament of Purity"] = 3.77,
+	["Oath of Purity"] = 3.23,
+	["Contract of Purity"] = 3.20,
+	["Covenant of Purity"] = 3.00,
+	["Bulwark of Purity"] = 2.75,
+	["Communion of Purity"] = 2.68,
+	["Grimoire of Purity"] = 2.25,
+	["Tome of Purity (Fire)"] = 2.27,
+	["Tome of Purity (Frost)"] = 2.14,
+	["Foil of Purity"] = 2.00
 }
 
 Purity.HardcoreRealms = {
@@ -125,6 +129,20 @@ function Purity:IsOnCommunityHardcoreChallenge()
     end
 
     return false
+end
+
+function Purity_TogglePanel()
+    -- First, check if the main UI has been created and exists.
+    if Purity and Purity.mainInterfaceFrame then
+        -- If the window is already shown, hide it.
+        if Purity.mainInterfaceFrame:IsShown() then
+            Purity.mainInterfaceFrame:Hide()
+        else
+            -- Otherwise, show the window and select the default "status" tab.
+            Purity.mainInterfaceFrame:Show()
+            Purity:selectTab("status")
+        end
+    end
 end
 
 function Purity:UpdateAllModifierStatuses()
@@ -302,6 +320,7 @@ function Purity:InitializeDatabase()
 		isHardcoreRun = false,
 		isSelfFoundRun = false,
 		isSSFRun = false,
+		challengeStats = {},
 	}
     for key, value in pairs(defaults) do
         if Purity_PerCharacterDB[key] == nil then
@@ -340,6 +359,7 @@ function Purity:InternalResetChallenge()
 	db.isHardcoreRun = false
 	db.isSelfFoundRun = false
 	db.isSSFRun = false
+	db.challengeStats = {}
 
 	if db.fishingFishedItemLinks then
 		wipe(db.fishingFishedItemLinks)
@@ -402,6 +422,183 @@ function Purity:DisplayRules()
             yOffset = yOffset - defaultLineSpacing
         end
     end
+end
+
+function Purity:BuildChallengeTypeMap()
+    self.ChallengeTypeMap = {}
+
+    -- Process Global Modules
+    if self.GlobalModules then
+        for _, module in pairs(self.GlobalModules) do
+            if module.challengeName == "The Ascetic's Path" then
+                -- Handle special case with multiple names
+                self.ChallengeTypeMap["Path of Humility"] = "Global"
+                self.ChallengeTypeMap["Path of Resilience"] = "Global"
+                self.ChallengeTypeMap["Path of the Unburdened"] = "Global"
+            elseif module.challengeName then
+                self.ChallengeTypeMap[module.challengeName] = "Global"
+            end
+        end
+    end
+
+    -- Process Class-Specific Modules
+    if self.ClassModules then
+        for className, classModule in pairs(self.ClassModules) do
+            local friendlyClassName = className:sub(1,1) .. className:sub(2):lower()
+            if classModule.challenges then -- Module contains a table of challenges
+                for _, challengeData in pairs(classModule.challenges) do
+                    self.ChallengeTypeMap[challengeData.challengeName] = friendlyClassName
+                end
+            elseif classModule.challengeName then -- Module is a single challenge
+                if classModule.challengeName == "Tome of Purity" then
+                    -- Handle special case with multiple names
+                    self.ChallengeTypeMap["Tome of Purity (Arcane)"] = friendlyClassName
+                    self.ChallengeTypeMap["Tome of Purity (Fire)"] = friendlyClassName
+                    self.ChallengeTypeMap["Tome of Purity (Frost)"] = friendlyClassName
+                else
+                    self.ChallengeTypeMap[classModule.challengeName] = friendlyClassName
+                end
+            end
+        end
+    end
+end
+
+function Purity:DisplayCompletionStats()
+    local db = self:GetDB()
+    if not db or (not db.challengeStats and not db.fishingFishedItemLinks) then return end
+
+    local stats = db.challengeStats or {}
+    local challenge = db.challengeTitle
+    local message
+
+    if challenge == "Sacrament of Purity" and stats.lifeTapCasts then
+        message = string.format("Fun fact: During your challenge, you cast Life Tap %d times!", stats.lifeTapCasts)
+    elseif challenge == "Grimoire of Purity" and stats.immolateCasts then
+        message = string.format("Fun fact: During your demonic studies, you cast Immolate %d times!", stats.immolateCasts)
+    elseif challenge == "Brand of Purity" and stats.chargeInterceptCasts then
+        message = string.format("Fun fact: During your challenge, you Charged or Intercepted %d times!", stats.chargeInterceptCasts)
+    elseif challenge == "Bulwark of Purity" and stats.blocks then
+        message = string.format("Fun fact: As an ardent protector, you successfully blocked %d attacks!", stats.blocks)
+    elseif challenge == "Tome of Purity" and stats.primarySpellCasts then
+        message = string.format("Fun fact: During your studies, you cast your primary spell %d times!", stats.primarySpellCasts)
+    elseif challenge == "Testament of Purity" and stats.smiteCasts then
+        message = string.format("Fun fact: To uphold your testament, you cast Smite %d times!", stats.smiteCasts)
+    elseif challenge == "Covenant of Purity" and stats.mindFlayCasts then
+        message = string.format("Fun fact: Embracing the shadows, you channeled Mind Flay %d times!", stats.mindFlayCasts)
+    elseif challenge == "Oath of Purity" and stats.holyLightCasts then
+        message = string.format("Fun fact: As a selfless guardian, you cast Holy Light %d times!", stats.holyLightCasts)
+    elseif challenge == "Libram of Purity" and stats.exorcismCasts then
+        message = string.format("Fun fact: In your crusade against the undead, you cast Exorcism %d times!", stats.exorcismCasts)
+    elseif challenge == "Communion of Purity" and stats.lightningBoltCasts then
+        message = string.format("Fun fact: In communion with the elements, you cast Lightning Bolt %d times!", stats.lightningBoltCasts)
+    elseif challenge == "Flame of Purity" and stats.fireSpellCasts then
+        message = string.format("Fun fact: Your inner flame burned bright, leading you to cast %d fire spells!", stats.fireSpellCasts)
+    elseif challenge == "Pact of Purity" and stats.shapeshiftCasts then
+        message = string.format("Fun fact: To protect the wilds, you shapeshifted into Bear Form %d times!", stats.shapeshiftCasts)
+    elseif challenge == "Astrolabe of Purity" and stats.celestialCasts then
+        message = string.format("Fun fact: To maintain celestial balance, you wove %d solar and lunar spells!", stats.celestialCasts)
+    elseif challenge == "Contract of Purity" and stats.sinisterStrikeCasts then
+        message = string.format("Fun fact: As an honorable duelist, you used Sinister Strike %d times!", stats.sinisterStrikeCasts)
+    elseif challenge == "Foil of Purity" and stats.riposteCasts then
+        message = string.format("Fun fact: With your fencer's grace, you successfully Riposted %d times!", stats.riposteCasts)
+    elseif challenge == "Bond of Purity" and stats.mendPetCasts then
+        message = string.format("Fun fact: To maintain your bond, you mended your pet %d times!", stats.mendPetCasts)
+    elseif challenge == "Quiver of Purity" and stats.aimedShotCasts then
+        message = string.format("Fun fact: As a lone wolf, you took aim and fired %d Aimed Shots!", stats.aimedShotCasts)
+    elseif challenge == "Fisherman's Folly" and db.fishingFishedItemLinks then
+        local fishCount = 0; for _ in pairs(db.fishingFishedItemLinks) do fishCount = fishCount + 1 end
+        local trunkCount = stats.trunksFished or 0
+        message = string.format("Fun fact: During your folly, you had %d successful catches, including %d trunks!", fishCount, trunkCount)
+    elseif challenge == "The Ascetic's Path" and stats.forbiddenItemsSold then
+        message = string.format("Fun fact: On your path of self-denial, you sold %d items that you were forbidden to equip!", stats.forbiddenItemsSold)
+    end
+
+    if message then
+        print("|cffFFFF00Purity:|r " .. message)
+    end
+end
+
+function Purity:DisplayRankings()
+    local pane = self.rankingsPane
+    if not (pane and pane.scrollFrame and pane.scrollChild) then return end
+
+    local scrollChild = pane.scrollChild
+    local scrollFrame = pane.scrollFrame
+
+    -- Clear existing lines from the scroll child
+    if scrollChild.lines then
+        for _, line in ipairs(scrollChild.lines) do
+            line:Hide()
+        end
+    end
+    scrollChild.lines = {}
+
+    local goldColor = "|cffffd100"
+    local darkColor = "|cff261a0d"
+
+    local sortedChallenges = {}
+    if not self.ChallengeCoefficients then return end
+    for name, coeff in pairs(self.ChallengeCoefficients) do
+        table.insert(sortedChallenges, {name = name, coeff = coeff})
+    end
+
+    table.sort(sortedChallenges, function(a, b)
+        return a.coeff > b.coeff
+    end)
+
+    local yOffset = -15
+    local lineSpacing = 22
+    local totalHeight = 20
+
+    for i, challengeData in ipairs(sortedChallenges) do
+        local rankText = string.format("%d.", i)
+        local challengeName = challengeData.name
+        local coefficientText = string.format("%.2f", challengeData.coeff)
+
+        -- Get the challenge type and format the final name string
+        local challengeType = (self.ChallengeTypeMap and self.ChallengeTypeMap[challengeName]) or ""
+        local challengeNameText = challengeName
+		if challengeType ~= "" then
+			local typeColor
+			local classUpper = string.upper(challengeType)
+
+			if classUpper == "SHAMAN" then
+				typeColor = "|cff0070DD" -- Override with Blue for Shaman
+			else
+				local classInfo = RAID_CLASS_COLORS[classUpper]
+				if classInfo and challengeType ~= "Global" then
+					typeColor = string.format("|cff%02x%02x%02x", classInfo.r*255, classInfo.g*255, classInfo.b*255)
+				else
+					typeColor = "|cffb0b0b0" -- Grey fallback for "Global" or unknown
+				end
+			end
+			challengeNameText = string.format("%s (%s%s|r)", challengeName, typeColor, challengeType)
+		end
+
+        -- Create FontStrings for alignment
+        local rankLine = scrollChild:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+        rankLine:SetPoint("TOPLEFT", scrollChild, "TOPLEFT", 20, yOffset)
+        rankLine:SetText(goldColor .. rankText .. "|r")
+        table.insert(scrollChild.lines, rankLine)
+
+        local coeffLine = scrollChild:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+        coeffLine:SetPoint("TOPRIGHT", scrollChild, "TOPRIGHT", -20, yOffset)
+        coeffLine:SetText(goldColor .. coefficientText .. "|r")
+        table.insert(scrollChild.lines, coeffLine)
+
+        local nameLine = scrollChild:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+        nameLine:SetPoint("LEFT", rankLine, "RIGHT", 15, 0)
+        nameLine:SetPoint("RIGHT", coeffLine, "LEFT", -10, 0) -- Prevents overlap
+        nameLine:SetJustifyH("LEFT")
+        nameLine:SetText(darkColor .. challengeNameText .. "|r")
+        table.insert(scrollChild.lines, nameLine)
+
+        yOffset = yOffset - lineSpacing
+        totalHeight = totalHeight + lineSpacing
+    end
+
+    scrollChild:SetHeight(totalHeight)
+    scrollFrame:SetVerticalScroll(0)
 end
 
 function Purity:GenerateVerificationHash(fullStringForHashing)
@@ -837,86 +1034,112 @@ function Purity:DisplayChallengeDetails(challengeData)
         warningFrame:SetPoint("TOPRIGHT", Purity.optInFrame.challengeRules, "BOTTOMRIGHT", -20, -15)
     end
 
-	C_Timer.After(0.05, function()
-        local scrollChild = Purity.optInFrame.scrollFrame:GetScrollChild()
-        local title = Purity.optInFrame.challengeTitle
-        local rules = Purity.optInFrame.challengeRules
-        local specContainer = Purity.optInFrame.specContainer
-        local warning = Purity.optInFrame.challengeWarning
-        local scrollFrame = Purity.optInFrame.scrollFrame
-        local acceptButton = Purity.optInFrame.acceptButton
+	C_Timer.After(0.1, function()
+		local scrollChild = Purity.optInFrame.scrollFrame:GetScrollChild()
+		if not scrollChild then return end
 
-        local lastElement = rules
-        if specContainer:IsShown() and specContainer:GetHeight() > 0 then
-            lastElement = specContainer
-        end
-        if warning:IsShown() then
-            lastElement = warning
-        end
+		local title = Purity.optInFrame.challengeTitle
+		local description = Purity.optInFrame.challengeDescription
+		local rules = Purity.optInFrame.challengeRules
+		local specContainer = Purity.optInFrame.specContainer
+		local warning = Purity.optInFrame.challengeWarning
+		local scrollFrame = Purity.optInFrame.scrollFrame
+		local acceptButton = Purity.optInFrame.acceptButton
 
-        local topY = title:GetTop()
-        local bottomY = lastElement:GetBottom()
+		local totalHeight = 10 -- Start with some top padding
 
-        if type(topY) ~= "number" or type(bottomY) ~= "number" then return end
-        
-        local totalHeight = topY - bottomY + 20
-        
-        scrollChild:SetHeight(totalHeight)
+		-- Add the height of each visible element plus some spacing
+		if title and title:IsShown() and title:GetText() and title:GetText() ~= "" then
+			totalHeight = totalHeight + title:GetHeight() + 15
+		end
+		if description and description:IsShown() and description:GetText() and description:GetText() ~= "" then
+			totalHeight = totalHeight + description:GetHeight() + 20
+		end
+		if rules and rules:IsShown() and rules:GetText() and rules:GetText() ~= "" then
+			totalHeight = totalHeight + rules:GetHeight() + 15
+		end
+		if specContainer and specContainer:IsShown() and specContainer:GetHeight() > 0 then
+			totalHeight = totalHeight + specContainer:GetHeight() + 15
+		end
+		if warning and warning:IsShown() and warning:GetText() and warning:GetText() ~= "" then
+			totalHeight = totalHeight + warning:GetHeight() + 10
+		end
 
-		C_Timer.After(0, function()
+		totalHeight = totalHeight + 20 -- Add some bottom padding
+
+		scrollChild:SetHeight(totalHeight)
+
+		-- Logic to enable/disable the accept button based on scrolling
+		acceptButton:Disable()
+		scrollFrame:SetVerticalScroll(0)
+
+		C_Timer.After(0.01, function()
 			local finalScrollRange = scrollFrame:GetVerticalScrollRange()
-			
-			acceptButton:Disable()
-			scrollFrame:SetVerticalScroll(0)
-			
 			if finalScrollRange < 5 then
 				acceptButton:Enable()
 			end
 		end)
-    end)
+	end)
 end
 
 function Purity:selectTab(tabToShow)
     if not self.mainInterfaceFrame then self:CreateCoreUI() end
 
+    -- Hide all panes and both content frames
     self.rulesPane:Hide()
     self.statusPane:Hide()
     self.rosterPane:Hide()
     self.verifyPane:Hide()
+    if self.rankingsPane then self.rankingsPane:Hide() end
+    if self.contentFrame then self.contentFrame:Hide() end
+    if self.wideContentFrame then self.wideContentFrame:Hide() end
 
-    if tabToShow == "rules" then
-        self.rulesPane:Show()
-        self:DisplayRules()
-    elseif tabToShow == "status" then
-        self.statusPane:Show()
-        self:SilentRequestTimePlayed()
-        self:UpdateAndGetStatusStrings()
-    elseif tabToShow == "roster" then
-        self.rosterPane:Show()
-        C_ChatInfo.SendAddonMessage(self.ADDON_PREFIX, "ROSTER_REQUEST", "CHANNEL", "PurityUsers")
-        self:UpdateRosterWindow()
-    elseif tabToShow == "verify" then
-		self.verifyPane:Show()
-		local db = self:GetDB()
-		if db.status == "Passed" then
-			self.verifyPane.editBox:SetText(self:GenerateWebVerificationString())
-			self.verifyPane.editBox:HighlightText()
-		else
-			self.verifyPane.editBox:SetText("You must complete a challenge to generate a verification string.")
-		end
 
-		if not self.verifyPane.websiteText then
-			self.verifyPane.websiteText = self.verifyPane:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-			self.verifyPane.websiteText:SetPoint("TOP", self.verifyPane.editBox, "BOTTOM", 0, -10)
-			self.verifyPane.websiteText:SetJustifyH("CENTER")
-			self.verifyPane.websiteText:SetWidth(400)
-		end
-		self.verifyPane.websiteText:SetText("Verify at: |cff00FFFFhttps://purity.pythonanywhere.com/|r")
-		self.verifyPane.websiteText:Show()
-	end
+    if tabToShow == "rankings" then
+        -- For the rankings tab, show the WIDE content frame and the rankings pane
+        self.wideContentFrame:Show()
+        self.rankingsPane:Show()
+        self:DisplayRankings()
+    else
+        -- For all other tabs, show the STANDARD content frame and the relevant pane
+        self.contentFrame:Show()
+        if tabToShow == "rules" then
+            self.rulesPane:Show()
+            self:DisplayRules()
+        elseif tabToShow == "status" then
+            self.statusPane:Show()
+            self:SilentRequestTimePlayed()
+            self:UpdateAndGetStatusStrings()
+        elseif tabToShow == "roster" then
+            self.rosterPane:Show()
+            C_ChatInfo.SendAddonMessage(self.ADDON_PREFIX, "ROSTER_REQUEST", "CHANNEL", "PurityUsers")
+            self:UpdateRosterWindow()
+        elseif tabToShow == "verify" then
+            self.verifyPane:Show()
+            local db = self:GetDB()
+            if db.status == "Passed" then
+                self.verifyPane.editBox:SetText(self:GenerateWebVerificationString())
+                self.verifyPane.editBox:HighlightText()
+            else
+                self.verifyPane.editBox:SetText("You must complete a challenge to generate a verification string.")
+            end
+    
+            if not self.verifyPane.websiteText then
+                self.verifyPane.websiteText = self.verifyPane:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+                self.verifyPane.websiteText:SetPoint("TOP", self.verifyPane.editBox, "BOTTOM", 0, -10)
+                self.verifyPane.websiteText:SetJustifyH("CENTER")
+                self.verifyPane.websiteText:SetWidth(400)
+            end
+            self.verifyPane.websiteText:SetText("Verify at: |cff00FFFFhttps://purity.pythonanywhere.com/|r")
+            self.verifyPane.websiteText:Show()
+        end
+    end
 end
 
 function Purity.CreateCoreUI()
+    if Purity.hasUIBeenCreated then return end
+    Purity.hasUIBeenCreated = true
+	
     Purity.notificationBanner = CreateFrame("Frame", "Purity_NotificationBanner", UIParent)
     Purity.notificationBanner:SetSize(600, 96)
     Purity.notificationBanner:SetPoint("TOP", 0, -100)
@@ -1006,17 +1229,17 @@ function Purity.CreateCoreUI()
 	rightPaneContainer:SetPoint("TOPLEFT", separator, "TOPRIGHT", 15, 0)
 	Purity.optInFrame.rightPane = rightPaneContainer
 
-	local scrollFrame = CreateFrame("ScrollFrame", "PurityOptInScrollFrame", rightPaneContainer, "UIPanelScrollFrameTemplate")
-	scrollFrame:SetPoint("TOPLEFT", 5, -5)
-	scrollFrame:SetSize(300, 350)
-	Purity.optInFrame.scrollFrame = scrollFrame
+    -- Create the ScrollFrame for the right pane of the OptInFrame
+    local scrollFrame = CreateFrame("ScrollFrame", "PurityOptInScrollFrame", rightPaneContainer, "UIPanelScrollFrameTemplate")
+    scrollFrame:SetAllPoints()
+    Purity.optInFrame.scrollFrame = scrollFrame
 
-	local scrollChild = CreateFrame("Frame")
-	scrollChild:SetWidth(280)
-	scrollChild:SetHeight(350) 
-	scrollFrame:SetScrollChild(scrollChild)
-	
-	local originalOnVerticalScroll = scrollFrame:GetScript("OnVerticalScroll")
+    -- Create the child frame that will hold the content and be scrolled
+    local scrollChild = CreateFrame("Frame")
+    scrollChild:SetWidth(rightPaneContainer:GetWidth() - 20)
+    Purity.optInFrame.scrollChild = scrollChild
+
+    scrollFrame:SetScrollChild(scrollChild)
 
 	scrollFrame:SetScript("OnVerticalScroll", function(self, offset)
 		if originalOnVerticalScroll then
@@ -1046,6 +1269,7 @@ function Purity.CreateCoreUI()
 	Purity.optInFrame.challengeRules:SetPoint("TOPLEFT", Purity.optInFrame.challengeDescription, "BOTTOMLEFT", 0, -20)
 	Purity.optInFrame.challengeRules:SetPoint("TOPRIGHT", Purity.optInFrame.challengeDescription, "BOTTOMRIGHT", 0, -20)
 	Purity.optInFrame.challengeRules:SetJustifyH("LEFT")
+	Purity.optInFrame.challengeRules:SetTextColor(1, 1, 1)
 
 	Purity.optInFrame.specContainer = CreateFrame("Frame", nil, scrollChild)
 	Purity.optInFrame.specContainer:SetPoint("TOPLEFT", Purity.optInFrame.challengeRules, "BOTTOMLEFT", 0, -15)
@@ -1250,31 +1474,48 @@ function Purity.CreateCoreUI()
     Purity.mainInterfaceFrame:SetScript("OnDragStop", Purity.mainInterfaceFrame.StopMovingOrSizing)
     Purity.mainInterfaceFrame:Hide()
 
-    local rulesTab = CreateFrame("Button", "Purity_RulesTab", Purity.mainInterfaceFrame, "UIPanelButtonTemplate")
-    rulesTab:SetSize(100, 22)
-    rulesTab:SetPoint("TOPLEFT", 15, -15)
-    rulesTab:SetText("Rules")
+	local tabWidth = 85
+	local tabSpacing = 5
 
-    local statusTab = CreateFrame("Button", "Purity_StatusTab", Purity.mainInterfaceFrame, "UIPanelButtonTemplate")
-    statusTab:SetSize(100, 22)
-    statusTab:SetPoint("LEFT", rulesTab, "RIGHT", 5, 0)
-    statusTab:SetText("Status")
-	
+	local rulesTab = CreateFrame("Button", "Purity_RulesTab", Purity.mainInterfaceFrame, "UIPanelButtonTemplate")
+	rulesTab:SetSize(tabWidth, 22)
+	rulesTab:SetPoint("TOPLEFT", 15, -15)
+	rulesTab:SetText("Rules")
+
+	local statusTab = CreateFrame("Button", "Purity_StatusTab", Purity.mainInterfaceFrame, "UIPanelButtonTemplate")
+	statusTab:SetSize(tabWidth, 22)
+	statusTab:SetPoint("LEFT", rulesTab, "RIGHT", tabSpacing, 0)
+	statusTab:SetText("Status")
+
 	local rosterTab = CreateFrame("Button", "Purity_RosterTab", Purity.mainInterfaceFrame, "UIPanelButtonTemplate")
-	rosterTab:SetSize(100, 22)
-	rosterTab:SetPoint("LEFT", statusTab, "RIGHT", 5, 0)
+	rosterTab:SetSize(tabWidth, 22)
+	rosterTab:SetPoint("LEFT", statusTab, "RIGHT", tabSpacing, 0)
 	rosterTab:SetText("Roster")
-	
-    local verifyTab = CreateFrame("Button", "Purity_VerifyTab", Purity.mainInterfaceFrame, "UIPanelButtonTemplate")
-    verifyTab:SetSize(100, 22)
-    verifyTab:SetPoint("LEFT", rosterTab, "RIGHT", 5, 0)
-    verifyTab:SetText("Verify")
 
+	local rankingsTab = CreateFrame("Button", "Purity_RankingsTab", Purity.mainInterfaceFrame, "UIPanelButtonTemplate")
+	rankingsTab:SetSize(tabWidth, 22)
+	rankingsTab:SetPoint("LEFT", rosterTab, "RIGHT", tabSpacing, 0)
+	rankingsTab:SetText("Rankings")
+
+	local verifyTab = CreateFrame("Button", "Purity_VerifyTab", Purity.mainInterfaceFrame, "UIPanelButtonTemplate")
+	verifyTab:SetSize(tabWidth, 22)
+	verifyTab:SetPoint("LEFT", rankingsTab, "RIGHT", tabSpacing, 0)
+	verifyTab:SetText("Verify")
+
+    -- This is the standard content frame for most tabs
     local contentFrame = CreateFrame("Frame", nil, Purity.mainInterfaceFrame)
     contentFrame:SetPoint("TOP", rulesTab, "BOTTOM", 0, -45)
     contentFrame:SetPoint("BOTTOM", Purity.mainInterfaceFrame, "BOTTOM", 0, 80)
     contentFrame:SetPoint("LEFT", Purity.mainInterfaceFrame, "LEFT", 60, 0)
     contentFrame:SetPoint("RIGHT", Purity.mainInterfaceFrame, "RIGHT", -60, 0)
+    Purity.contentFrame = contentFrame -- Store a reference to it
+
+    -- This is a wider content frame specifically for the Rankings tab
+    Purity.wideContentFrame = CreateFrame("Frame", nil, Purity.mainInterfaceFrame)
+    Purity.wideContentFrame:SetPoint("TOP", rulesTab, "BOTTOM", 0, -45)
+    Purity.wideContentFrame:SetPoint("BOTTOM", Purity.mainInterfaceFrame, "BOTTOM", 0, 80)
+    Purity.wideContentFrame:SetPoint("LEFT", Purity.mainInterfaceFrame, "LEFT", -20, 0)
+    Purity.wideContentFrame:SetPoint("RIGHT", Purity.mainInterfaceFrame, "RIGHT", -60, 0)
 
     Purity.rulesPane = CreateFrame("Frame", nil, contentFrame)
     Purity.rulesPane:SetAllPoints(contentFrame)
@@ -1286,10 +1527,31 @@ function Purity.CreateCoreUI()
 	Purity.verifyPane = CreateFrame("Frame", nil, contentFrame)
 	Purity.verifyPane:SetAllPoints(contentFrame)
 	
+	Purity.rankingsPane = CreateFrame("Frame", nil, Purity.wideContentFrame)
+	Purity.rankingsPane:SetAllPoints(Purity.wideContentFrame)
+	
 	local rosterHeader = Purity.rosterPane:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 	rosterHeader:SetPoint("TOP", Purity.rosterPane, "TOP", 0, -25)
 	rosterHeader:SetText("Purity Addon Roster")
 	rosterHeader:SetTextColor(1, 0.82, 0)
+	
+    local rankingsHeader = Purity.rankingsPane:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    rankingsHeader:SetPoint("TOP", Purity.rankingsPane, "TOP", 0, -25)
+    rankingsHeader:SetText("Challenge Difficulty Rankings")
+    rankingsHeader:SetTextColor(1, 0.82, 0)
+	
+	    -- Create the ScrollFrame for the Rankings Pane
+    local scrollFrame = CreateFrame("ScrollFrame", "PurityRankingsScrollFrame", Purity.rankingsPane, "UIPanelScrollFrameTemplate")
+    scrollFrame:SetPoint("TOPLEFT", rankingsHeader, "BOTTOMLEFT", -15, -15)
+    scrollFrame:SetPoint("BOTTOMRIGHT", Purity.rankingsPane, "BOTTOMRIGHT", -45, 20)
+    Purity.rankingsPane.scrollFrame = scrollFrame
+
+    -- Create the child frame that will hold the content and be scrolled
+    local scrollChild = CreateFrame("Frame")
+    scrollChild:SetWidth(scrollFrame:GetWidth() - 20)
+    Purity.rankingsPane.scrollChild = scrollChild
+
+    scrollFrame:SetScrollChild(scrollChild)
 
     Purity.rulesPane.title = Purity.rulesPane:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge")
     Purity.rulesPane.title:SetPoint("TOP", Purity.rulesPane, "TOP", 0, -25)
@@ -1337,6 +1599,7 @@ function Purity.CreateCoreUI()
     rulesTab:SetScript("OnClick", function() Purity:selectTab("rules") end)
     statusTab:SetScript("OnClick", function() Purity:selectTab("status") end)
 	rosterTab:SetScript("OnClick", function() Purity:selectTab("roster") end)
+	rankingsTab:SetScript("OnClick", function() Purity:selectTab("rankings") end)
     verifyTab:SetScript("OnClick", function() Purity:selectTab("verify") end)
 
     local closeButton = CreateFrame("Button", "Purity_InterfaceCloseButton", Purity.mainInterfaceFrame, "UIPanelButtonTemplate")
@@ -1438,6 +1701,7 @@ function Purity:PerformSecurityAudit(db)
 end
 
 function Purity:Violation(message, isFromAudit)
+    if not self.notificationBanner then self:CreateCoreUI() end
     local currentDB = Purity:GetDB()
 
     if currentDB.status ~= "Passing" and currentDB.status ~= "Temporary Failure - Uptime" then
@@ -1736,11 +2000,15 @@ function Purity:ActivateMonitoring()
 			
 	        if event == "PLAYER_LEVEL_UP" then
                 local newLevel = ...
-                if newLevel == MAX_PLAYER_LEVEL and db.status == "Passing" then
-                    Purity:CompleteChallenge()
+                if newLevel == MAX_PLAYER_LEVEL then
+                    if db.status == "Passing" then
+                        Purity:CompleteChallenge()
+                    end
+                    Purity:DisplayCompletionStats()
                 end
             end
 
+            local aChallenge = Purity:GetActiveChallengeObject()
             if aChallenge and aChallenge.EventHandler then
                 aChallenge:EventHandler(event, ...)
             end
@@ -1980,6 +2248,7 @@ local function OnAddonMessage(prefix, message, channel, sender)
 end
 
 local function OnPlayerLogin()
+    Purity:BuildChallengeTypeMap()
 	Purity:StartModifierMonitor()
     C_ChatInfo.RegisterAddonMessagePrefix(Purity.ADDON_PREFIX)
     JoinTemporaryChannel("PurityUsers", "a-unique-password", 1)
@@ -2100,6 +2369,18 @@ mainFrame:SetScript("OnEvent", function(self, event, ...)
             Purity:UpdateAndGetStatusStrings()
         end
         return
+    end
+	
+	if event == "ADDON_LOADED" then
+        local addonName = ...
+        if addonName == "Purity" then
+            -- This sets "SHIFT-P" as the default key if the user hasn't set one already.
+            -- Note we are using our new binding name: "PURITY_TOGGLE"
+            if not GetBindingKey("PURITY_TOGGLE") then
+                SetBinding("PURITY_TOGGLE", "SHIFT-P");
+            end
+        end
+        return;
     end
 end)
 

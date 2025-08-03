@@ -2,12 +2,12 @@
 ## Title: Purity
 ## Notes: An addon for WoW Classic leveling challenges.
 ## Author: HoliestWoW
-## Version: 8.1.0
+## Version: 8.1.1
 ## SavedVariablesPerCharacter: Purity_Warning, Purity_PerCharacterDB
 
 # Libraries
-Libs\LibStub\LibStub.lua
-Libs\AceGUI-3.0\AceGUI-3.0.xml
+Libs/LibStub/LibStub.lua
+Libs/AceGUI-3.0/AceGUI-3.0.xml
 
 # Addon Core
 Purity.lua

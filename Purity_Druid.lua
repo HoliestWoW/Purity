@@ -55,10 +55,8 @@ DruidModule.challenges.pact = {
                     self.beastsInCombat[targetGUID] = creatureType
                 end
             end
-
         elseif event == "PLAYER_LEAVE_COMBAT" or event == "PLAYER_REGEN_ENABLED" then
             self.beastsInCombat = {}
-
         elseif event == "COMBAT_LOG_EVENT_UNFILTERED" then
             if UnitLevel("player") >= 10 then
                 local _, subEvent, _, sourceGUID, _, _, _, _, _, _, _, spellId, spellName = CombatLogGetCurrentEventInfo()
@@ -68,15 +66,27 @@ DruidModule.challenges.pact = {
                     end
                 end
             end
-
             local _, subEvent, _, _, _, _, _, destGUID, destName, destFlags = CombatLogGetCurrentEventInfo()
-
             if subEvent == "UNIT_DIED" and destGUID and bit.band(destFlags, COMBATLOG_OBJECT_TYPE_NPC) > 0 then
                 local creatureType = self.beastsInCombat[destGUID]
                 if UnitAffectingCombat("player") and creatureType then
                     if creatureType == "Beast" then
                         Purity:Violation("You have broken your pact with the wilds.\nThe spirit of the slain beast cries out against you.")
                         return
+                    end
+                end
+            end
+        elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
+            local unit, _, _, _, spellId = ...
+            if unit == "player" then
+                -- Stat tracking for Bear Form shifts
+                local bearFormIDs = { [5487]=true, [9634]=true } -- Bear Form, Dire Bear Form
+                if bearFormIDs[spellId] then
+                    local db = Purity:GetDB()
+                    db.challengeStats = db.challengeStats or {}
+                    db.challengeStats.shapeshiftCasts = (db.challengeStats.shapeshiftCasts or 0) + 1
+					if _G["PurityCharacterPanel"] and _G["PurityCharacterPanel"]:IsShown() then
+                        _G["UpdateCharacterPurity"]()
                     end
                 end
             end
@@ -139,24 +149,31 @@ DruidModule.challenges.astrolabe = {
             self.lastDamageSpellSchool = nil
         elseif event == "COMBAT_LOG_EVENT_UNFILTERED" then
             local _, subEvent, _, sourceGUID, _, _, _, _, _, _, _, spellId, spellName = CombatLogGetCurrentEventInfo()
-
             if sourceGUID ~= UnitGUID("player") or (subEvent ~= "SPELL_DAMAGE" and subEvent ~= "SPELL_PERIODIC_DAMAGE") then return end
-
             local currentSchool = nil
             if self.natureDamageSpells[spellId] then
                 currentSchool = "Nature"
             elseif self.arcaneDamageSpells[spellId] then
                 currentSchool = "Arcane"
             end
-
             if not currentSchool then return end
-
             if self.lastDamageSpellSchool == currentSchool then
                 Purity:Violation("Broke the celestial balance by casting from the same magic school twice:\n" .. spellName)
                 return
             end
-            
             self.lastDamageSpellSchool = currentSchool
+        elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
+             local unit, _, _, _, spellId = ...
+             if unit == "player" then
+                if self.natureDamageSpells[spellId] or self.arcaneDamageSpells[spellId] then
+                    local db = Purity:GetDB()
+                    db.challengeStats = db.challengeStats or {}
+                    db.challengeStats.celestialCasts = (db.challengeStats.celestialCasts or 0) + 1
+					if _G["PurityCharacterPanel"] and _G["PurityCharacterPanel"]:IsShown() then
+                        _G["UpdateCharacterPurity"]()
+                    end
+                end
+             end
         end
     end,
 }

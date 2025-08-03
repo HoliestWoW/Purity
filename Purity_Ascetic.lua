@@ -66,7 +66,7 @@ local AsceticModule = {
         }
     },
     
-    selectedDifficultyId = nil
+    selectedDifficultyId = nil,
 }
 
 function AsceticModule:isWeaponAllowed(itemLink)
@@ -142,6 +142,22 @@ function AsceticModule:InitializeOnPlayerEnterWorld()
     end
     self.selectedDifficultyId = db.asceticChallengeData.difficulty
     self.needsWeaponWarning = (self.selectedDifficultyId == "HARD")
+
+    hooksecurefunc("UseContainerItem", function(bag, slot)
+        local db = Purity:GetDB()
+        if db.isOptedIn and db.challengeTitle == self.challengeName and MerchantFrame and MerchantFrame:IsShown() then
+            local itemLink = C_Container.GetContainerItemLink(bag, slot)
+            if itemLink then
+                if self:IsItemForbidden(itemLink) then
+                    db.challengeStats = db.challengeStats or {}
+                    db.challengeStats.forbiddenItemsSold = (db.challengeStats.forbiddenItemsSold or 0) + 1
+					if _G["PurityCharacterPanel"] and _G["PurityCharacterPanel"]:IsShown() then
+                        _G["UpdateCharacterPurity"]()
+                    end
+                end
+            end
+        end
+    end)
 end
 
 function AsceticModule:SaveData()

@@ -9,7 +9,7 @@ local WarriorModule = {
 
 local CHARGE_SPELL_IDS = {
     [100] = true,
-    [6343] = true,
+    [6178] = true,
     [11578] = true,
     [20252] = true,
     [20616] = true,
@@ -142,6 +142,19 @@ WarriorModule.challenges.brand = {
                 self.hasChargedForCombat = true
             end
         end
+        if event == "UNIT_SPELLCAST_SUCCEEDED" then
+            local unit, _, spellId = ...
+            if unit == "player" then
+                if CHARGE_SPELL_IDS[spellId] then
+                    local db = Purity:GetDB()
+                    db.challengeStats = db.challengeStats or {}
+                    db.challengeStats.chargeInterceptCasts = (db.challengeStats.chargeInterceptCasts or 0) + 1
+					if _G["PurityCharacterPanel"] and _G["PurityCharacterPanel"]:IsShown() then
+                        _G["UpdateCharacterPurity"]()
+                    end
+                end
+            end
+        end
     end,
 }
 
@@ -196,6 +209,17 @@ WarriorModule.challenges.bulwark = {
     end,
 
     EventHandler = function(self, event, ...)
+        if event == "COMBAT_LOG_EVENT_UNFILTERED" then
+            local _, subEvent, _, _, _, _, _, destGUID, _, _, _, missType = CombatLogGetCurrentEventInfo()
+            if destGUID == UnitGUID("player") and subEvent == "SWING_MISSED" and missType == "BLOCK" then
+                local db = Purity:GetDB()
+                db.challengeStats = db.challengeStats or {}
+                db.challengeStats.blocks = (db.challengeStats.blocks or 0) + 1
+				if _G["PurityCharacterPanel"] and _G["PurityCharacterPanel"]:IsShown() then
+                        _G["UpdateCharacterPurity"]()
+                    end
+            end
+        end
     end,
 }
 
