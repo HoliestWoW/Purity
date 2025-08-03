@@ -67,8 +67,22 @@ PaladinModule.challenges.oath = {
                     self.hostileAttackers[destGUID] = true 
                 end
             end
+        elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
+            local unit, _, _, _, spellId = ...
+            if unit == "player" then
+                -- Stat tracking for Holy Light
+                local holyLightIDs = { [635]=true,[639]=true,[647]=true,[1026]=true,[1042]=true,[3472]=true,[10328]=true,[10329]=true,[25292]=true }
+                if holyLightIDs[spellId] then
+                    local db = Purity:GetDB()
+                    db.challengeStats = db.challengeStats or {}
+                    db.challengeStats.holyLightCasts = (db.challengeStats.holyLightCasts or 0) + 1
+					if _G["PurityCharacterPanel"] and _G["PurityCharacterPanel"]:IsShown() then
+                        _G["UpdateCharacterPurity"]()
+                    end
+                end
+            end
         end
-    end
+    end,
 }
 
 PaladinModule.challenges.libram = {
@@ -118,19 +132,29 @@ PaladinModule.challenges.libram = {
                     self.combatants[targetGUID] = creatureType
                 end
             end
-
         elseif event == "PLAYER_LEAVE_COMBAT" or event == "PLAYER_REGEN_ENABLED" then
             self.combatants = {}
-
         elseif event == "COMBAT_LOG_EVENT_UNFILTERED" then
             local _, subEvent, _, _, _, _, _, destGUID, destName, destFlags = CombatLogGetCurrentEventInfo()
-
             if subEvent == "UNIT_DIED" and destGUID and bit.band(destFlags, COMBATLOG_OBJECT_TYPE_NPC) > 0 then
-                local creatureType = self.combatants[destGUID]
                 if UnitAffectingCombat("player") and self.combatants[destGUID] then
-                    if creatureType ~= "Undead" then
+                    if self.combatants[destGUID] ~= "Undead" then
                         Purity:Violation("Landed the killing blow on a non-Undead creature: " .. destName)
                         return
+                    end
+                end
+            end
+        elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
+            local unit, _, _, _, spellId = ...
+            if unit == "player" then
+                -- Stat tracking for Exorcism
+                local exorcismIDs = { [879]=true, [5614]=true, [5615]=true, [10312]=true, [10313]=true, [10314]=true }
+                if exorcismIDs[spellId] then
+                    local db = Purity:GetDB()
+                    db.challengeStats = db.challengeStats or {}
+                    db.challengeStats.exorcismCasts = (db.challengeStats.exorcismCasts or 0) + 1
+					if _G["PurityCharacterPanel"] and _G["PurityCharacterPanel"]:IsShown() then
+                        _G["UpdateCharacterPurity"]()
                     end
                 end
             end

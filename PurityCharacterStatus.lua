@@ -52,15 +52,27 @@ inactiveTextures.left = PurityTabGUI:CreateTexture(nil, "ARTWORK"); inactiveText
 inactiveTextures.right = PurityTabGUI:CreateTexture(nil, "ARTWORK"); inactiveTextures.right:SetTexture("Interface\\PaperDollInfoFrame\\UI-Character-InactiveTab"); inactiveTextures.right:SetSize(20, 32); inactiveTextures.right:SetTexCoord(1 - 0.3125, 1, 0, 1); inactiveTextures.right:SetPoint("TOPRIGHT", 0, -6)
 inactiveTextures.middle = PurityTabGUI:CreateTexture(nil, "ARTWORK"); inactiveTextures.middle:SetTexture("Interface\\PaperDollInfoFrame\\UI-Character-InactiveTab"); inactiveTextures.middle:SetTexCoord(0.3125, 1 - 0.3125, 0, 1); inactiveTextures.middle:SetPoint("TOPLEFT", inactiveTextures.left, "TOPRIGHT"); inactiveTextures.middle:SetPoint("BOTTOMRIGHT", inactiveTextures.right, "BOTTOMLEFT")
 
-PurityTabGUI:SetHighlightTexture("Interface\\PaperDollInfoFrame\\UI-Character-Tab-Highlight")
-PurityTabGUI:GetHighlightTexture():SetBlendMode("ADD")
+local purity_highlight = PurityTabGUI:CreateTexture(nil, "HIGHLIGHT")
+purity_highlight:SetTexture("Interface\\PaperDollInfoFrame\\UI-Character-Tab-RealHighlight")
+
+purity_highlight:SetSize(60, 38)
+
+purity_highlight:SetPoint("TOP", 0, 0)
+
+purity_highlight:SetRotation(3.14)
+purity_highlight:SetTexCoord(1.0, 0.0, 1.0, 0.0)
+purity_highlight:SetBlendMode("ADD")
+
+PurityTabGUI:SetHighlightTexture(purity_highlight)
+
+PurityTabGUI:SetHighlightTexture(purity_highlight)
 
 function ShowCharacterPurity()
 	for _, texture in pairs(activeTextures) do texture:Show() end
 	for _, texture in pairs(inactiveTextures) do texture:Hide() end
 	PurityTabGUI.text:SetFontObject(GameFontHighlightSmall)
 	PurityTabGUI.text:SetPoint("CENTER", 0, 3)
-	PurityTabGUI:SetFrameStrata("HIGH") -- Move to top layer
+	PurityTabGUI:SetFrameStrata("HIGH")
 	PurityPanel:Show()
 end
 
@@ -69,7 +81,7 @@ function HideCharacterPurity()
 	for _, texture in pairs(inactiveTextures) do texture:Show() end
 	PurityTabGUI.text:SetFontObject(GameFontNormalSmall)
 	PurityTabGUI.text:SetPoint("CENTER", 0, 1)
-	PurityTabGUI:SetFrameStrata("MEDIUM") -- Return to normal layer
+	PurityTabGUI:SetFrameStrata("MEDIUM")
 	PurityPanel:Hide()
 end
 
@@ -208,6 +220,50 @@ function UpdateCharacterPurity()
                 GameTooltip:Show()
             end)
             totalLabel.frame:SetScript("OnLeave", function() GameTooltip:Hide() end)
+		end
+
+		if (db.challengeStats and next(db.challengeStats)) or (db.challengeTitle == "Fisherman's Folly") then
+			CreateLabel("", 1, 10)
+			local statsLabel = CreateLabel("\nFun Stats", 16, 22)
+			statsLabel.frame:SetScript("OnEnter", function(self)
+                GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+                GameTooltip:AddLine("Just for Fun!", 1, 1, 1)
+                GameTooltip:AddLine("This is a simple counter of an iconic action\nfor your current challenge.", 0.8, 0.8, 0.8, true)
+                GameTooltip:Show()
+            end)
+            statsLabel.frame:SetScript("OnLeave", function() GameTooltip:Hide() end)
+
+			local statValue, statName = nil, nil
+            if db.challengeTitle == "Sacrament of Purity" then statValue = db.challengeStats.lifeTapCasts; statName = "Life Taps Cast:"
+            elseif db.challengeTitle == "Grimoire of Purity" then statValue = db.challengeStats.immolateCasts; statName = "Immolates Cast:"
+            elseif db.challengeTitle == "Brand of Purity" then statValue = db.challengeStats.chargeInterceptCasts; statName = "Charges/Intercepts:"
+            elseif db.challengeTitle == "Bulwark of Purity" then statValue = db.challengeStats.blocks; statName = "Successful Blocks:"
+            elseif db.challengeTitle == "Tome of Purity" then statValue = db.challengeStats.primarySpellCasts; statName = "Primary Spells Cast:"
+            elseif db.challengeTitle == "Testament of Purity" then statValue = db.challengeStats.smiteCasts; statName = "Smites Cast:"
+            elseif db.challengeTitle == "Covenant of Purity" then statValue = db.challengeStats.mindFlayCasts; statName = "Mind Flays Channeled:"
+			elseif db.challengeTitle == "Oath of Purity" then statValue = db.challengeStats.holyLightCasts; statName = "Holy Lights Cast:"
+			elseif db.challengeTitle == "Libram of Purity" then statValue = db.challengeStats.exorcismCasts; statName = "Exorcisms Cast:"
+			elseif db.challengeTitle == "Communion of Purity" then statValue = db.challengeStats.lightningBoltCasts; statName = "Lightning Bolts Cast:"
+			elseif db.challengeTitle == "Flame of Purity" then statValue = db.challengeStats.fireSpellCasts; statName = "Fire Spells Cast:"
+            elseif db.challengeTitle == "Pact of Purity" then statValue = db.challengeStats.shapeshiftCasts; statName = "Bear Form Shifts:"
+            elseif db.challengeTitle == "Astrolabe of Purity" then statValue = db.challengeStats.celestialCasts; statName = "Celestial Spells Cast:"
+            elseif db.challengeTitle == "Contract of Purity" then statValue = db.challengeStats.sinisterStrikeCasts; statName = "Sinister Strikes:"
+            elseif db.challengeTitle == "Foil of Purity" then statValue = db.challengeStats.riposteCasts; statName = "Ripostes:"
+            elseif db.challengeTitle == "Bond of Purity" then statValue = db.challengeStats.mendPetCasts; statName = "Mend Pet Casts:"
+            elseif db.challengeTitle == "Quiver of Purity" then statValue = db.challengeStats.aimedShotCasts; statName = "Aimed Shots Fired:"
+            elseif db.challengeTitle == "The Ascetic's Path" then statValue = db.challengeStats.forbiddenItemsSold; statName = "Forbidden Items Sold:"
+			end
+
+			if statName and statValue then
+				CreateLabel(goldColor .. statName .. "|r " .. whiteColor .. statValue, 12, 16)
+			end
+
+            if db.challengeTitle == "Fisherman's Folly" then
+                local fishCount = 0; if db.fishingFishedItemLinks then for _ in pairs(db.fishingFishedItemLinks) do fishCount = fishCount + 1 end end
+                local trunkCount = (db.challengeStats and db.challengeStats.trunksFished) or 0
+                CreateLabel(goldColor .. "Total Catches:|r " .. whiteColor .. fishCount, 12, 16)
+                CreateLabel(goldColor .. "Trunks Fished:|r " .. whiteColor .. trunkCount, 12, 16)
+            end
 		end
 	end)
 end

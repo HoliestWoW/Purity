@@ -88,6 +88,19 @@ ShamanModule.challenges.COMMUNION = {
                 self.totemCombatCheckTicker:Cancel()
                 self.totemCombatCheckTicker = nil
             end
+        elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
+            local unit, _, _, _, spellId = ...
+            if unit == "player" then
+                local lightningBoltIDs = { [403]=true, [529]=true, [548]=true, [915]=true, [943]=true, [6041]=true, [10391]=true, [10392]=true, [15207]=true, [15208]=true }
+                if lightningBoltIDs[spellId] then
+                    local db = Purity:GetDB()
+                    db.challengeStats = db.challengeStats or {}
+                    db.challengeStats.lightningBoltCasts = (db.challengeStats.lightningBoltCasts or 0) + 1
+					if _G["PurityCharacterPanel"] and _G["PurityCharacterPanel"]:IsShown() then
+                        _G["UpdateCharacterPurity"]()
+                    end
+                end
+            end
         end
     end
 }
@@ -178,23 +191,31 @@ ShamanModule.challenges.FLAME = {
     end,
 
     EventHandler = function(self, event, ...)
-        if UnitLevel("player") < 10 then
-            return
-        end
+        if UnitLevel("player") < 10 then return end
 
         if event == "UNIT_SPELLCAST_SUCCEEDED" then
-            local unit, _, spellId = ...
-            if unit == "player" and self:IsSpellForbidden(spellId) then
-                local spellName = GetSpellInfo(spellId)
-                Purity:Violation("Used a forbidden spell after awakening: " .. (spellName or "Unknown"))
+            local unit, _, _, _, spellId = ...
+            if unit == "player" then
+                if self:IsSpellForbidden(spellId) then
+                    local spellName = GetSpellInfo(spellId)
+                    Purity:Violation("Used a forbidden spell after awakening: " .. (spellName or "Unknown"))
+                else
+                    local _, _, _, _, _, _, _, _, school = GetSpellInfo(spellId)
+                    if school and school == 4 then
+                         local db = Purity:GetDB()
+                         db.challengeStats = db.challengeStats or {}
+                         db.challengeStats.fireSpellCasts = (db.challengeStats.fireSpellCasts or 0) + 1
+						 if _G["PurityCharacterPanel"] and _G["PurityCharacterPanel"]:IsShown() then
+                        _G["UpdateCharacterPurity"]()
+                    end
+                    end
+                end
             end
         elseif event == "PLAYER_TOTEM_UPDATE" then
             local totemSlot = ...
             if totemSlot ~= FIRE_TOTEM_SLOT then
                 local haveTotem, _, _, _ = GetTotemInfo(totemSlot)
-                if haveTotem then
-                    Purity:Violation("Used a non-Fire totem after awakening.")
-                end
+                if haveTotem then Purity:Violation("Used a non-Fire totem after awakening.") end
             end
         end
     end
@@ -238,34 +259,19 @@ function ShamanModule:isWeaponAllowed(itemLink)
     return true
 end
 
-    EventHandler = function(self, event, ...)
-        if event == "PLAYER_LEVEL_UP" then
-            local newLevel = ...
-            if newLevel == 10 then
-                Purity:ShowRuleUpdate("The Call of the Flame has awakened! From this moment on, you must adhere to its rules: only Fire and Physical abilities are permitted.")
-            end
-        end
+function ShamanModule:EventHandler(event, ...)
+    local activeChallenge = self:GetActiveChallengeObject()
+    if activeChallenge and activeChallenge.EventHandler then
+        activeChallenge:EventHandler(event, ...)
+    end
 
-        if UnitLevel("player") < 10 then
-            return
-        end
-
-        if event == "UNIT_SPELLCAST_SUCCEEDED" then
-            local unit, _, spellId = ...
-            if unit == "player" and self:IsSpellForbidden(spellId) then
-                local spellName = GetSpellInfo(spellId)
-                Purity:Violation("Used a forbidden spell after awakening: " .. (spellName or "Unknown"))
-            end
-        elseif event == "PLAYER_TOTEM_UPDATE" then
-            local totemSlot = ...
-            if totemSlot ~= FIRE_TOTEM_SLOT then
-                local haveTotem, _, _, _ = GetTotemInfo(totemSlot)
-                if haveTotem then
-                    Purity:Violation("Used a non-Fire totem after awakening.")
-                end
-            end
+    if event == "PLAYER_LEVEL_UP" then
+        local newLevel = ...
+        if newLevel == 10 and Purity:GetDB().activeChallengeID == "FLAME" then
+            Purity:ShowRuleUpdate("The Call of the Flame has awakened! From this moment on, you must adhere to its rules: only Fire and Physical abilities are permitted.")
         end
     end
+end
 
 function ShamanModule:InitializeOnPlayerEnterWorld()
     self.isAddonFullyLoaded = true

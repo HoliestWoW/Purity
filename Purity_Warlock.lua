@@ -56,7 +56,7 @@ local GrimoireOfPurity = {
         if not itemLink then return true end
         local itemID = tonumber(string.match(itemLink, "item:(%d+)"))
         if not itemID then return true end
-        local _, _, _, _, _, _, itemSubType = GetItemInfo(itemLink)
+		local _, _, _, _, _, itemType, itemSubType = GetItemInfo(itemLink)
 
         if itemSubType == "Fishing Pole" then return true end
         if itemType == "Weapon" and itemSubType ~= "Wands" then return true end
@@ -130,6 +130,21 @@ local GrimoireOfPurity = {
                     if id and self:IsSpellForbidden(id) then
                         Purity:Violation("Learned a forbidden spell:\n" .. GetSpellInfo(id))
                     end
+                end
+            end
+        end
+        if event == "UNIT_SPELLCAST_SUCCEEDED" then
+            local unit, _, spellId = ...
+            if unit == "player" then
+                -- Stat tracking for Immolate
+                local immolateIDs = { [348]=true, [707]=true, [1094]=true, [2941]=true, [11665]=true, [11667]=true, [25309]=true, [11668]=true }
+                if immolateIDs[spellId] then
+                    local db = Purity:GetDB()
+                    db.challengeStats = db.challengeStats or {}
+                    db.challengeStats.immolateCasts = (db.challengeStats.immolateCasts or 0) + 1
+					if _G["PurityCharacterPanel"] and _G["PurityCharacterPanel"]:IsShown() then
+                        _G["UpdateCharacterPurity"]()
+					end
                 end
             end
         end
@@ -227,6 +242,21 @@ local SacramentOfPurity = {
                     if id and self:IsSpellForbidden(id) then
                         Purity:Violation("Learned a forbidden spell:\n" .. GetSpellInfo(id))
                     end
+                end
+            end
+        end
+        if event == "UNIT_SPELLCAST_SUCCEEDED" then
+            local unit, _, spellId = ...
+            if unit == "player" then
+                -- Stat tracking for Life Tap
+                local lifeTapIDs = { [1454]=true, [1455]=true, [1456]=true, [11687]=true, [11688]=true, [11689]=true }
+                if lifeTapIDs[spellId] then
+                    local db = Purity:GetDB()
+                    db.challengeStats = db.challengeStats or {}
+                    db.challengeStats.lifeTapCasts = (db.challengeStats.lifeTapCasts or 0) + 1
+                    if _G["PurityCharacterPanel"] and _G["PurityCharacterPanel"]:IsShown() then
+                        _G["UpdateCharacterPurity"]()
+					end
                 end
             end
         end
