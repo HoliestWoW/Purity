@@ -2,6 +2,13 @@
 
 if not Purity then return end
 
+<<<<<<< HEAD
+-- Create a dedicated, hidden tooltip for internal checks to avoid UI interference.
+PurityCheckTooltip = CreateFrame("GameTooltip", "PurityCheckTooltip", UIParent, "GameTooltipTemplate")
+PurityCheckTooltip:Hide()
+
+=======
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
 local DIFFICULTY_COLORS = {
     EASY = "|cff0070dd",
     MEDIUM = "|cffa335ee",
@@ -69,6 +76,68 @@ local AsceticModule = {
     selectedDifficultyId = nil,
 }
 
+<<<<<<< HEAD
+local function CanPlayerEquip(itemLink)
+    if not itemLink then return false end
+
+    -- Get item and player info
+    local _, _, _, _, _, itemType, itemSubType = GetItemInfo(itemLink)
+    local _, playerClassToken = UnitClass("player")
+    local playerLevel = UnitLevel("player")
+
+    -- 1. Perform a direct, reliable check for armor & shield proficiency
+    if itemType == "Armor" then
+        if (itemSubType == "Leather" and not (playerClassToken == "ROGUE" or playerClassToken == "DRUID" or playerClassToken == "HUNTER" or playerClassToken == "SHAMAN" or playerClassToken == "WARRIOR" or playerClassToken == "PALADIN")) or
+           (itemSubType == "Mail" and not (playerClassToken == "WARRIOR" or playerClassToken == "PALADIN" or ((playerClassToken == "HUNTER" or playerClassToken == "SHAMAN") and playerLevel >= 40))) or
+           (itemSubType == "Plate" and not ((playerClassToken == "WARRIOR" or playerClassToken == "PALADIN") and playerLevel >= 40)) or
+           (itemSubType == "Shields" and not (playerClassToken == "WARRIOR" or playerClassToken == "SHAMAN" or playerClassToken == "PALADIN")) then
+            return false
+        end
+    end
+
+    -- 2. Fallback to our private tooltip scan for other restrictions.
+    -- This does NOT affect or interfere with the player's visible GameTooltip.
+    PurityCheckTooltip:SetOwner(UIParent, "ANCHOR_NONE")
+    PurityCheckTooltip:SetHyperlink(itemLink)
+
+    local canEquip = true
+    for i = 2, PurityCheckTooltip:NumLines() do
+        -- NOTE: We are now checking the lines of our private tooltip
+        local line = _G["PurityCheckTooltipTextLeft" .. i]
+        if line and line:GetText() then
+            local r, g, b = line:GetTextColor()
+            if r > 0.9 and g < 0.2 and b < 0.2 then
+                canEquip = false
+                break
+            end
+        end
+    end
+
+    PurityCheckTooltip:Hide()
+    return canEquip
+end
+
+local function CheckSoldItem(bag, slot)
+    local db = Purity:GetDB()
+    if db.isOptedIn and db.challengeTitle == AsceticModule.challengeName and MerchantFrame and MerchantFrame:IsShown() then
+        local itemInfo = C_Container.GetContainerItemInfo(bag, slot)
+        if itemInfo and itemInfo.hyperlink then
+            -- This is the combined check:
+            -- 1. Is the item forbidden by the Ascetic path?
+            -- 2. AND is it an item the player could have normally equipped?
+            if AsceticModule:IsItemForbidden(itemInfo.hyperlink) and CanPlayerEquip(itemInfo.hyperlink) then
+                db.challengeStats = db.challengeStats or {}
+                db.challengeStats.forbiddenItemsSold = (db.challengeStats.forbiddenItemsSold or 0) + 1
+				if _G["PurityCharacterPanel"] and _G["PurityCharacterPanel"]:IsShown() then
+                    _G["UpdateCharacterPurity"]()
+                end
+            end
+        end
+    end
+end
+
+=======
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
 function AsceticModule:isWeaponAllowed(itemLink)
     local difficulty = self.selectedDifficultyId
     if not difficulty and Purity.tempSelectedSpec and Purity.tempSelectedSpec.id then
@@ -142,6 +211,9 @@ function AsceticModule:InitializeOnPlayerEnterWorld()
     end
     self.selectedDifficultyId = db.asceticChallengeData.difficulty
     self.needsWeaponWarning = (self.selectedDifficultyId == "HARD")
+<<<<<<< HEAD
+	hooksecurefunc(C_Container, "UseContainerItem", CheckSoldItem)
+=======
 
     hooksecurefunc("UseContainerItem", function(bag, slot)
         local db = Purity:GetDB()
@@ -158,6 +230,7 @@ function AsceticModule:InitializeOnPlayerEnterWorld()
             end
         end
     end)
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
 end
 
 function AsceticModule:SaveData()

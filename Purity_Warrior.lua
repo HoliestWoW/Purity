@@ -131,12 +131,31 @@ WarriorModule.challenges.brand = {
 
         elseif event == "COMBAT_LOG_EVENT_UNFILTERED" then
             local _, subEvent, _, sourceGUID, _, _, _, _, _, _, _, spellId = CombatLogGetCurrentEventInfo()
+<<<<<<< HEAD
+
+            if sourceGUID == UnitGUID("player") and subEvent == "SPELL_CAST_SUCCESS" then
+                if CHARGE_SPELL_IDS[spellId] then
+                    local db = Purity:GetDB()
+                    if not db.challengeStats then db.challengeStats = {} end
+                    db.challengeStats.chargeInterceptCasts = (db.challengeStats.chargeInterceptCasts or 0) + 1
+                end
+            end
+
+=======
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
             if sourceGUID ~= UnitGUID("player") then return end
 
             if GetShapeshiftForm() == 2 then
                 Purity:Violation("Used the forbidden Defensive Stance.")
                 return
             end
+<<<<<<< HEAD
+
+            if not UnitAffectingCombat("player") and subEvent == "SPELL_CAST_SUCCESS" and CHARGE_SPELL_IDS[spellId] then
+                self.hasChargedForCombat = true
+            end
+		end
+=======
             
             if not UnitAffectingCombat("player") and subEvent == "SPELL_CAST_SUCCESS" and CHARGE_SPELL_IDS[spellId] then
                 self.hasChargedForCombat = true
@@ -155,6 +174,7 @@ WarriorModule.challenges.brand = {
                 end
             end
         end
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
     end,
 }
 
@@ -216,8 +236,13 @@ WarriorModule.challenges.bulwark = {
                 db.challengeStats = db.challengeStats or {}
                 db.challengeStats.blocks = (db.challengeStats.blocks or 0) + 1
 				if _G["PurityCharacterPanel"] and _G["PurityCharacterPanel"]:IsShown() then
+<<<<<<< HEAD
+                    _G["UpdateCharacterPurity"]()
+                end
+=======
                         _G["UpdateCharacterPurity"]()
                     end
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
             end
         end
     end,

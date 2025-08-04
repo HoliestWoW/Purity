@@ -56,7 +56,26 @@ PaladinModule.challenges.oath = {
         if event == "PLAYER_REGEN_ENABLED" then
             self.hostileAttackers = {}
         elseif event == "COMBAT_LOG_EVENT_UNFILTERED" then
+<<<<<<< HEAD
+            local _, subEvent, _, sourceGUID, _, sourceFlags, _, destGUID, _, destFlags, _, spellId = CombatLogGetCurrentEventInfo()
+
+            -- Stat tracking for Holy Light (reliable method)
+            if sourceGUID == UnitGUID("player") and subEvent == "SPELL_CAST_SUCCESS" then
+                local holyLightIDs = { [635]=true,[639]=true,[647]=true,[1026]=true,[1042]=true,[3472]=true,[10328]=true,[10329]=true,[25292]=true }
+                if holyLightIDs[spellId] then
+                    local db = Purity:GetDB()
+                    if not db.challengeStats then db.challengeStats = {} end
+                    db.challengeStats.holyLightCasts = (db.challengeStats.holyLightCasts or 0) + 1
+                    if _G["PurityCharacterPanel"] and _G["PurityCharacterPanel"]:IsShown() then
+                        _G["UpdateCharacterPurity"]()
+                    end
+                end
+            end
+
+            -- Rule validation for initiating combat
+=======
             local _, subEvent, _, sourceGUID, _, sourceFlags, _, destGUID, _, destFlags = CombatLogGetCurrentEventInfo()
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
             if not (string.find(subEvent, "_DAMAGE") or string.find(subEvent, "_MISSED")) then return end
 
             if destGUID == UnitGUID("player") and sourceGUID and bit.band(sourceFlags, COMBATLOG_OBJECT_TYPE_NPC) > 0 then
@@ -67,6 +86,9 @@ PaladinModule.challenges.oath = {
                     self.hostileAttackers[destGUID] = true 
                 end
             end
+<<<<<<< HEAD
+		end
+=======
         elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
             local unit, _, _, _, spellId = ...
             if unit == "player" then
@@ -82,6 +104,7 @@ PaladinModule.challenges.oath = {
                 end
             end
         end
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
     end,
 }
 
@@ -135,7 +158,24 @@ PaladinModule.challenges.libram = {
         elseif event == "PLAYER_LEAVE_COMBAT" or event == "PLAYER_REGEN_ENABLED" then
             self.combatants = {}
         elseif event == "COMBAT_LOG_EVENT_UNFILTERED" then
+<<<<<<< HEAD
+            local _, subEvent, _, sourceGUID, _, _, _, destGUID, destName, destFlags, _, spellId = CombatLogGetCurrentEventInfo()
+
+            if sourceGUID == UnitGUID("player") and subEvent == "SPELL_CAST_SUCCESS" then
+                local exorcismIDs = { [879]=true, [5614]=true, [5615]=true, [10312]=true, [10313]=true, [10314]=true }
+                if exorcismIDs[spellId] then
+                    local db = Purity:GetDB()
+                    if not db.challengeStats then db.challengeStats = {} end
+                    db.challengeStats.exorcismCasts = (db.challengeStats.exorcismCasts or 0) + 1
+					if _G["PurityCharacterPanel"] and _G["PurityCharacterPanel"]:IsShown() then
+                        _G["UpdateCharacterPurity"]()
+                    end
+                end
+            end
+
+=======
             local _, subEvent, _, _, _, _, _, destGUID, destName, destFlags = CombatLogGetCurrentEventInfo()
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
             if subEvent == "UNIT_DIED" and destGUID and bit.band(destFlags, COMBATLOG_OBJECT_TYPE_NPC) > 0 then
                 if UnitAffectingCombat("player") and self.combatants[destGUID] then
                     if self.combatants[destGUID] ~= "Undead" then
@@ -144,6 +184,8 @@ PaladinModule.challenges.libram = {
                     end
                 end
             end
+<<<<<<< HEAD
+=======
         elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
             local unit, _, _, _, spellId = ...
             if unit == "player" then
@@ -158,6 +200,7 @@ PaladinModule.challenges.libram = {
                     end
                 end
             end
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
         end
     end,
 }

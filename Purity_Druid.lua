@@ -58,8 +58,25 @@ DruidModule.challenges.pact = {
         elseif event == "PLAYER_LEAVE_COMBAT" or event == "PLAYER_REGEN_ENABLED" then
             self.beastsInCombat = {}
         elseif event == "COMBAT_LOG_EVENT_UNFILTERED" then
+<<<<<<< HEAD
+            local _, subEvent, _, sourceGUID, _, _, _, _, _, _, _, spellId, spellName = CombatLogGetCurrentEventInfo()
+            if sourceGUID == UnitGUID("player") and subEvent == "SPELL_CAST_SUCCESS" then
+                local bearFormIDs = { [5487]=true, [9634]=true }
+                if bearFormIDs[spellId] then
+                    local db = Purity:GetDB()
+                    if not db.challengeStats then db.challengeStats = {} end
+                    db.challengeStats.shapeshiftCasts = (db.challengeStats.shapeshiftCasts or 0) + 1
+					if _G["PurityCharacterPanel"] and _G["PurityCharacterPanel"]:IsShown() then
+                        _G["UpdateCharacterPurity"]()
+                    end
+                end
+            end
+
+            if UnitLevel("player") >= 10 then
+=======
             if UnitLevel("player") >= 10 then
                 local _, subEvent, _, sourceGUID, _, _, _, _, _, _, _, spellId, spellName = CombatLogGetCurrentEventInfo()
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
                 if sourceGUID == UnitGUID("player") and (subEvent == "SPELL_CAST_SUCCESS" or subEvent == "SPELL_AURA_APPLIED") then
                     if self.forbiddenBalanceSpells[spellId] then
                         Purity:Violation("Used a forbidden Balance spell after level 10:\n" .. spellName); return;
@@ -76,6 +93,8 @@ DruidModule.challenges.pact = {
                     end
                 end
             end
+<<<<<<< HEAD
+=======
         elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
             local unit, _, _, _, spellId = ...
             if unit == "player" then
@@ -90,6 +109,7 @@ DruidModule.challenges.pact = {
                     end
                 end
             end
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
         end
     end,
 }
@@ -148,6 +168,41 @@ DruidModule.challenges.astrolabe = {
         if event == "PLAYER_LEAVE_COMBAT" or event == "PLAYER_REGEN_ENABLED" then
             self.lastDamageSpellSchool = nil
         elseif event == "COMBAT_LOG_EVENT_UNFILTERED" then
+<<<<<<< HEAD
+			local _, subEvent, _, sourceGUID, _, _, _, _, _, _, _, spellId, spellName = CombatLogGetCurrentEventInfo()
+
+			-- Stat tracking for celestial casts (reliable method)
+			if sourceGUID == UnitGUID("player") and subEvent == "SPELL_CAST_SUCCESS" then
+				if self.natureDamageSpells[spellId] or self.arcaneDamageSpells[spellId] then
+					local db = Purity:GetDB()
+					if not db.challengeStats then db.challengeStats = {} end
+					db.challengeStats.celestialCasts = (db.challengeStats.celestialCasts or 0) + 1
+					if _G["PurityCharacterPanel"] and _G["PurityCharacterPanel"]:IsShown() then
+                        _G["UpdateCharacterPurity"]()
+                    end
+				end
+			end
+
+			-- Rule validation for alternating spell schools
+			if sourceGUID ~= UnitGUID("player") or (subEvent ~= "SPELL_DAMAGE" and subEvent ~= "SPELL_PERIODIC_DAMAGE") then return end
+
+			local currentSchool = nil
+			if self.natureDamageSpells[spellId] then
+				currentSchool = "Nature"
+			elseif self.arcaneDamageSpells[spellId] then
+				currentSchool = "Arcane"
+			end
+
+			if not currentSchool then return end
+
+			if self.lastDamageSpellSchool == currentSchool then
+				Purity:Violation("Broke the celestial balance by casting from the same magic school twice:\n" .. spellName)
+				return
+			end
+			self.lastDamageSpellSchool = currentSchool
+		end
+	end,
+=======
             local _, subEvent, _, sourceGUID, _, _, _, _, _, _, _, spellId, spellName = CombatLogGetCurrentEventInfo()
             if sourceGUID ~= UnitGUID("player") or (subEvent ~= "SPELL_DAMAGE" and subEvent ~= "SPELL_PERIODIC_DAMAGE") then return end
             local currentSchool = nil
@@ -176,6 +231,7 @@ DruidModule.challenges.astrolabe = {
              end
         end
     end,
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
 }
 
 Purity.ClassModules = Purity.ClassModules or {}
