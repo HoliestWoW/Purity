@@ -135,6 +135,7 @@ function FishingModule:EventHandler(event, ...)
         local message = ...
         local itemLink = string.match(message, "You receive loot: (.+).")
         if not itemLink then return end
+<<<<<<< HEAD
         local itemName, _, _, _, _, itemType = GetItemInfo(itemLink)
         local itemID = tonumber(string.match(itemLink, "item:(%d+)"))
         if not itemName or not itemID then return end
@@ -144,10 +145,17 @@ function FishingModule:EventHandler(event, ...)
         db.challengeStats = db.challengeStats or {}
         db.challengeStats.totalCatches = (db.challengeStats.totalCatches or 0) + 1
 
+=======
+        local itemName, _, _, _, _, _, _, _, _, _, spellId = GetItemInfo(itemLink)
+        local itemID = tonumber(string.match(itemLink, "item:(%d+)"))
+        if not itemName or not itemID then return end
+
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
         if DIRECT_FISHED_EQUIPPABLES[itemID] then
             local cleanItemName = self:SanitizeItemName(itemName)
             if cleanItemName then currentDB.fishingFishedItemLinks[cleanItemName] = true end
         end
+<<<<<<< HEAD
         
         -- Stat tracking for trunks
         if itemName and string.find(itemName, "Trunk") then
@@ -156,6 +164,16 @@ function FishingModule:EventHandler(event, ...)
 
         if _G["PurityCharacterPanel"] and _G["PurityCharacterPanel"]:IsShown() then
             _G["UpdateCharacterPurity"]()
+=======
+        -- Stat tracking for trunks
+        if itemName and string.find(itemName, "Trunk") then
+            local db = Purity:GetDB()
+            db.challengeStats = db.challengeStats or {}
+            db.challengeStats.trunksFished = (db.challengeStats.trunksFished or 0) + 1
+			if _G["PurityCharacterPanel"] and _G["PurityCharacterPanel"]:IsShown() then
+                _G["UpdateCharacterPurity"]()
+            end
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
         end
     elseif event == "PLAYER_EQUIPMENT_CHANGED" then
         Purity:CheckWeaponState()

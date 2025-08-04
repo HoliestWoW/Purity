@@ -246,12 +246,20 @@ function UpdateCharacterPurity()
 			elseif db.challengeTitle == "Communion of Purity" then statValue = db.challengeStats.lightningBoltCasts; statName = "Lightning Bolts Cast:"
 			elseif db.challengeTitle == "Flame of Purity" then statValue = db.challengeStats.fireSpellCasts; statName = "Fire Spells Cast:"
             elseif db.challengeTitle == "Pact of Purity" then statValue = db.challengeStats.shapeshiftCasts; statName = "Bear Form Shifts:"
+<<<<<<< HEAD
             elseif db.challengeTitle == "Astrolabe of Purity" then statValue = db.challengeStats.celestialCasts; statName = "Celestial/Nature Spells Cast:"
+=======
+            elseif db.challengeTitle == "Astrolabe of Purity" then statValue = db.challengeStats.celestialCasts; statName = "Celestial Spells Cast:"
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
             elseif db.challengeTitle == "Contract of Purity" then statValue = db.challengeStats.sinisterStrikeCasts; statName = "Sinister Strikes:"
             elseif db.challengeTitle == "Foil of Purity" then statValue = db.challengeStats.riposteCasts; statName = "Ripostes:"
             elseif db.challengeTitle == "Bond of Purity" then statValue = db.challengeStats.mendPetCasts; statName = "Mend Pet Casts:"
             elseif db.challengeTitle == "Quiver of Purity" then statValue = db.challengeStats.aimedShotCasts; statName = "Aimed Shots Fired:"
+<<<<<<< HEAD
             elseif db.challengeTitle == "The Ascetic's Path" then statValue = db.challengeStats.forbiddenItemsSold; statName = "Potential Upgrades Sold:"
+=======
+            elseif db.challengeTitle == "The Ascetic's Path" then statValue = db.challengeStats.forbiddenItemsSold; statName = "Forbidden Items Sold:"
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
 			end
 
 			if statName and statValue then
@@ -259,7 +267,11 @@ function UpdateCharacterPurity()
 			end
 
             if db.challengeTitle == "Fisherman's Folly" then
+<<<<<<< HEAD
                 local fishCount = (db.challengeStats and db.challengeStats.totalCatches) or 0
+=======
+                local fishCount = 0; if db.fishingFishedItemLinks then for _ in pairs(db.fishingFishedItemLinks) do fishCount = fishCount + 1 end end
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
                 local trunkCount = (db.challengeStats and db.challengeStats.trunksFished) or 0
                 CreateLabel(goldColor .. "Total Catches:|r " .. whiteColor .. fishCount, 12, 16)
                 CreateLabel(goldColor .. "Trunks Fished:|r " .. whiteColor .. trunkCount, 12, 16)

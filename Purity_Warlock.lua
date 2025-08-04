@@ -100,6 +100,7 @@ local GrimoireOfPurity = {
             local _, subEvent, _, sourceGUID, _, _, _, destGUID, _, _, _, spellId, spellName = CombatLogGetCurrentEventInfo()
             if sourceGUID ~= UnitGUID("player") then return end
 
+<<<<<<< HEAD
 			if subEvent == "SPELL_CAST_SUCCESS" then
                 local immolateIDs = { [348]=true, [707]=true, [1094]=true, [2941]=true, [11665]=true, [11667]=true, [25309]=true, [11668]=true }
                 if immolateIDs[spellId] then
@@ -112,6 +113,8 @@ local GrimoireOfPurity = {
                 end
             end
 
+=======
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
             if subEvent == "RANGE_DAMAGE" and not self:isWeaponAllowed(GetInventoryItemLink("player", INVSLOT_RANGED)) then
                 Purity:Violation("Used a non-Fire wand.")
             elseif (subEvent == "SPELL_CAST_SUCCESS" or subEvent == "SPELL_AURA_APPLIED") then
@@ -145,6 +148,24 @@ local GrimoireOfPurity = {
                 end
             end
         end
+<<<<<<< HEAD
+=======
+        if event == "UNIT_SPELLCAST_SUCCEEDED" then
+            local unit, _, spellId = ...
+            if unit == "player" then
+                -- Stat tracking for Immolate
+                local immolateIDs = { [348]=true, [707]=true, [1094]=true, [2941]=true, [11665]=true, [11667]=true, [25309]=true, [11668]=true }
+                if immolateIDs[spellId] then
+                    local db = Purity:GetDB()
+                    db.challengeStats = db.challengeStats or {}
+                    db.challengeStats.immolateCasts = (db.challengeStats.immolateCasts or 0) + 1
+					if _G["PurityCharacterPanel"] and _G["PurityCharacterPanel"]:IsShown() then
+                        _G["UpdateCharacterPurity"]()
+					end
+                end
+            end
+        end
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
     end,
 }
 table.insert(WarlockModule.challenges, GrimoireOfPurity)
@@ -217,6 +238,7 @@ local SacramentOfPurity = {
             local _, subEvent, _, sourceGUID, _, _, _, _, _, _, _, spellId, spellName = CombatLogGetCurrentEventInfo()
             if sourceGUID ~= UnitGUID("player") then return end
 
+<<<<<<< HEAD
             -- Stat tracking for Life Tap
             if subEvent == "SPELL_CAST_SUCCESS" then
                 local lifeTapIDs = { [1454]=true, [1455]=true, [1456]=true, [11687]=true, [11688]=true, [11689]=true }
@@ -230,6 +252,8 @@ local SacramentOfPurity = {
                 end
             end
 
+=======
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
             if (subEvent == "SPELL_CAST_SUCCESS" or subEvent == "SPELL_SUMMON") then
                 if self:IsSpellForbidden(spellId) then
                     Purity:Violation("Used a forbidden spell or item:\n" .. (spellName or "Unknown"))
@@ -255,6 +279,24 @@ local SacramentOfPurity = {
                 end
             end
         end
+<<<<<<< HEAD
+=======
+        if event == "UNIT_SPELLCAST_SUCCEEDED" then
+            local unit, _, spellId = ...
+            if unit == "player" then
+                -- Stat tracking for Life Tap
+                local lifeTapIDs = { [1454]=true, [1455]=true, [1456]=true, [11687]=true, [11688]=true, [11689]=true }
+                if lifeTapIDs[spellId] then
+                    local db = Purity:GetDB()
+                    db.challengeStats = db.challengeStats or {}
+                    db.challengeStats.lifeTapCasts = (db.challengeStats.lifeTapCasts or 0) + 1
+                    if _G["PurityCharacterPanel"] and _G["PurityCharacterPanel"]:IsShown() then
+                        _G["UpdateCharacterPurity"]()
+					end
+                end
+            end
+        end
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
     end,
 }
 table.insert(WarlockModule.challenges, SacramentOfPurity)

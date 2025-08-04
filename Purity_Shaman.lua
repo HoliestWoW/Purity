@@ -88,6 +88,7 @@ ShamanModule.challenges.COMMUNION = {
                 self.totemCombatCheckTicker:Cancel()
                 self.totemCombatCheckTicker = nil
             end
+<<<<<<< HEAD
         elseif event == "COMBAT_LOG_EVENT_UNFILTERED" then
             local _, subEvent, _, sourceGUID, _, _, _, _, _, _, _, spellId = CombatLogGetCurrentEventInfo()
             if sourceGUID == UnitGUID("player") and subEvent == "SPELL_CAST_SUCCESS" then
@@ -95,6 +96,15 @@ ShamanModule.challenges.COMMUNION = {
                 if lightningBoltIDs[spellId] then
                     local db = Purity:GetDB()
                     if not db.challengeStats then db.challengeStats = {} end
+=======
+        elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
+            local unit, _, _, _, spellId = ...
+            if unit == "player" then
+                local lightningBoltIDs = { [403]=true, [529]=true, [548]=true, [915]=true, [943]=true, [6041]=true, [10391]=true, [10392]=true, [15207]=true, [15208]=true }
+                if lightningBoltIDs[spellId] then
+                    local db = Purity:GetDB()
+                    db.challengeStats = db.challengeStats or {}
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
                     db.challengeStats.lightningBoltCasts = (db.challengeStats.lightningBoltCasts or 0) + 1
 					if _G["PurityCharacterPanel"] and _G["PurityCharacterPanel"]:IsShown() then
                         _G["UpdateCharacterPurity"]()
@@ -186,27 +196,48 @@ ShamanModule.challenges.FLAME = {
         return true
     end,
 
+<<<<<<< HEAD
         IsItemForbidden = function(self, itemLink)
+=======
+    IsItemForbidden = function(self, itemLink)
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
         return false
     end,
 
     EventHandler = function(self, event, ...)
         if UnitLevel("player") < 10 then return end
 
+<<<<<<< HEAD
         if event == "COMBAT_LOG_EVENT_UNFILTERED" then
             local _, subEvent, _, sourceGUID, _, _, _, _, _, _, _, spellId, spellName = CombatLogGetCurrentEventInfo()
             if sourceGUID == UnitGUID("player") and subEvent == "SPELL_CAST_SUCCESS" then
                 if self:IsSpellForbidden(spellId) then
+=======
+        if event == "UNIT_SPELLCAST_SUCCEEDED" then
+            local unit, _, _, _, spellId = ...
+            if unit == "player" then
+                if self:IsSpellForbidden(spellId) then
+                    local spellName = GetSpellInfo(spellId)
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
                     Purity:Violation("Used a forbidden spell after awakening: " .. (spellName or "Unknown"))
                 else
                     local _, _, _, _, _, _, _, _, school = GetSpellInfo(spellId)
                     if school and school == 4 then
+<<<<<<< HEAD
                         local db = Purity:GetDB()
                         if not db.challengeStats then db.challengeStats = {} end
                         db.challengeStats.fireSpellCasts = (db.challengeStats.fireSpellCasts or 0) + 1
 						if _G["PurityCharacterPanel"] and _G["PurityCharacterPanel"]:IsShown() then
 							_G["UpdateCharacterPurity"]()
 						end
+=======
+                         local db = Purity:GetDB()
+                         db.challengeStats = db.challengeStats or {}
+                         db.challengeStats.fireSpellCasts = (db.challengeStats.fireSpellCasts or 0) + 1
+						 if _G["PurityCharacterPanel"] and _G["PurityCharacterPanel"]:IsShown() then
+                        _G["UpdateCharacterPurity"]()
+                    end
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
                     end
                 end
             end

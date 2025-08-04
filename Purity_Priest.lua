@@ -116,6 +116,7 @@ local TestamentOfPurity = {
         elseif event == "PLAYER_EQUIPMENT_CHANGED" then
             Purity:CheckWeaponState()
         elseif event == "COMBAT_LOG_EVENT_UNFILTERED" then
+<<<<<<< HEAD
             local _, subEvent, _, sourceGUID, _, _, _, _, _, _, _, spellId, _, spellSchool = CombatLogGetCurrentEventInfo()
             if sourceGUID == UnitGUID("player") then
                 if subEvent == "SPELL_CAST_SUCCESS" then
@@ -129,6 +130,10 @@ local TestamentOfPurity = {
 						end
                     end
                 end
+=======
+            local _, subEvent, _, sourceGUID, _, _, _, _, _, _, _, _, _, spellSchool = CombatLogGetCurrentEventInfo()
+            if sourceGUID == UnitGUID("player") then
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
                 if spellSchool and (spellSchool == 6) then
                     Purity:Violation("You have channeled the whispers of the Void. Your purity is undone.")
                     return
@@ -145,6 +150,19 @@ local TestamentOfPurity = {
                     Purity:Violation("Used a forbidden spell:\n" .. (castName or "Unknown Spell"))
                     return
                 end
+<<<<<<< HEAD
+=======
+                -- Stat tracking for Smite
+                local smiteIDs = { [585]=true, [594]=true,[598]=true,[984]=true,[6060]=true,[10933]=true,[10934]=true }
+                if smiteIDs[spellId] then
+                    local db = Purity:GetDB()
+                    db.challengeStats = db.challengeStats or {}
+                    db.challengeStats.smiteCasts = (db.challengeStats.smiteCasts or 0) + 1
+					if _G["PurityCharacterPanel"] and _G["PurityCharacterPanel"]:IsShown() then
+                        _G["UpdateCharacterPurity"]()
+                    end
+                end
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
             end
         elseif event == "PLAYER_TALENT_UPDATE" or event == "SPELLS_CHANGED" then
             for id, name in pairs(self._forbiddenSpellIDs) do
@@ -254,6 +272,7 @@ local CovenantOfPurity = {
         if event == "COMBAT_LOG_EVENT_UNFILTERED" then
             local _, subEvent, _, sourceGUID, _, _, _, _, _, _, _, spellId, spellName, spellSchool = CombatLogGetCurrentEventInfo()
             if sourceGUID == UnitGUID("player") then
+<<<<<<< HEAD
                 if subEvent == "SPELL_CAST_SUCCESS" then
                     local mindFlayIDs = { [15407]=true, [17311]=true, [17312]=true, [17313]=true, [17314]=true }
                     if mindFlayIDs[spellId] then
@@ -265,6 +284,8 @@ local CovenantOfPurity = {
 						end
                     end
                 end
+=======
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
                 if (subEvent == "SPELL_CAST_SUCCESS" or subEvent == "SPELL_HEAL") and self:IsSpellForbidden(spellId) then
                      Purity:Violation("Used a forbidden spell: " .. (spellName or "Unknown"))
                      return
@@ -281,6 +302,19 @@ local CovenantOfPurity = {
                     Purity:Violation("Used a forbidden spell:\n" .. (castName or "Unknown Spell"))
                     return
                 end
+<<<<<<< HEAD
+=======
+                -- Stat tracking for Mind Flay
+                local mindFlayIDs = { [15407]=true, [17311]=true, [17312]=true, [17313]=true, [17314]=true }
+                if mindFlayIDs[spellId] then
+                    local db = Purity:GetDB()
+                    db.challengeStats = db.challengeStats or {}
+                    db.challengeStats.mindFlayCasts = (db.challengeStats.mindFlayCasts or 0) + 1
+					if _G["PurityCharacterPanel"] and _G["PurityCharacterPanel"]:IsShown() then
+                        _G["UpdateCharacterPurity"]()
+                    end
+                end
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
             end
         elseif event == "PLAYER_TALENT_UPDATE" or event == "SPELLS_CHANGED" then
             for i = 1, GetNumSpellTabs() do

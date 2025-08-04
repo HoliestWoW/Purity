@@ -7,7 +7,11 @@ if not Purity then
     Purity = {}
 end
 
+<<<<<<< HEAD
 Purity.Version = "8.1.2"
+=======
+Purity.Version = "8.1.1"
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
 
 Purity.ADDON_PREFIX = "PURITYCOMMS"
 Purity.roster = {}
@@ -505,10 +509,17 @@ function Purity:DisplayCompletionStats()
         message = string.format("Fun fact: To maintain your bond, you mended your pet %d times!", stats.mendPetCasts)
     elseif challenge == "Quiver of Purity" and stats.aimedShotCasts then
         message = string.format("Fun fact: As a lone wolf, you took aim and fired %d Aimed Shots!", stats.aimedShotCasts)
+<<<<<<< HEAD
     elseif challenge == "Fisherman's Folly" then
         local fishCount = stats.totalCatches or 0
         local trunkCount = stats.trunksFished or 0
         message = string.format("Fun fact: During your folly, you had %d successful catches, including %d trunks!", fishCount, trunkCount)        message = string.format("Fun fact: During your folly, you had %d successful catches, including %d trunks!", fishCount, trunkCount)
+=======
+    elseif challenge == "Fisherman's Folly" and db.fishingFishedItemLinks then
+        local fishCount = 0; for _ in pairs(db.fishingFishedItemLinks) do fishCount = fishCount + 1 end
+        local trunkCount = stats.trunksFished or 0
+        message = string.format("Fun fact: During your folly, you had %d successful catches, including %d trunks!", fishCount, trunkCount)
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
     elseif challenge == "The Ascetic's Path" and stats.forbiddenItemsSold then
         message = string.format("Fun fact: On your path of self-denial, you sold %d items that you were forbidden to equip!", stats.forbiddenItemsSold)
     end
@@ -961,6 +972,7 @@ end
 
 function Purity:DisplayChallengeDetails(challengeData)
     if not challengeData then return end
+<<<<<<< HEAD
 	
 	Purity.optInFrame.challengeTitle:SetText("")
 	Purity.optInFrame.challengeDescription:SetText("")
@@ -973,6 +985,8 @@ function Purity:DisplayChallengeDetails(challengeData)
 		end
 	end
 	Purity.optInFrame.specContainer:Hide()
+=======
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
 
     Purity.selectedChallenge = challengeData
 
@@ -980,6 +994,7 @@ function Purity:DisplayChallengeDetails(challengeData)
 
     Purity.optInFrame.challengeTitle:SetText(challengeData.challengeName or "")
 
+<<<<<<< HEAD
 local descriptionText = ""
 if challengeData.description then
     descriptionText = (type(challengeData.description) == "function") and challengeData.description() or challengeData.description
@@ -1017,6 +1032,13 @@ local coefficientText = ""
 
 	-- Set the combined description and coefficient text
 	Purity.optInFrame.challengeDescription:SetText(descriptionText .. coefficientText)
+=======
+    local descriptionText = ""
+    if challengeData.description then
+        descriptionText = (type(challengeData.description) == "function") and challengeData.description() or challengeData.description
+    end
+    Purity.optInFrame.challengeDescription:SetText(descriptionText)
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
 
     local rules = challengeData.GetRulesText and challengeData:GetRulesText() or {""}
     local rulesString = table.concat(rules, "\n")
@@ -1066,7 +1088,10 @@ local coefficientText = ""
     end
 
     specContainer:SetHeight(totalSpecHeight)
+<<<<<<< HEAD
 	if totalSpecHeight > 0 then specContainer:Show() end
+=======
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
 
     local warningFrame = Purity.optInFrame.challengeWarning
     warningFrame:ClearAllPoints()
@@ -1276,8 +1301,12 @@ function Purity.CreateCoreUI()
 
     -- Create the ScrollFrame for the right pane of the OptInFrame
     local scrollFrame = CreateFrame("ScrollFrame", "PurityOptInScrollFrame", rightPaneContainer, "UIPanelScrollFrameTemplate")
+<<<<<<< HEAD
     scrollFrame:SetPoint("TOPLEFT")
 	scrollFrame:SetPoint("TOPRIGHT", -30, 0)
+=======
+    scrollFrame:SetAllPoints()
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
     Purity.optInFrame.scrollFrame = scrollFrame
 
     -- Create the child frame that will hold the content and be scrolled
@@ -1427,7 +1456,10 @@ function Purity.CreateCoreUI()
     local checkbox = CreateFrame("CheckButton", "Purity_OptInCheckbox", Purity.optInFrame, "UICheckButtonTemplate")
     checkbox:SetPoint("BOTTOM", Purity.optInFrame.rightPane, "BOTTOM", -135, 5)
     Purity.optInFrame.checkbox = checkbox
+<<<<<<< HEAD
 	Purity.optInFrame.scrollFrame:SetPoint("BOTTOM", checkbox, "TOP", 0, 15)
+=======
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
 
     local checkboxText = checkbox:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     checkboxText:SetPoint("LEFT", checkbox, "RIGHT", 0, 0)

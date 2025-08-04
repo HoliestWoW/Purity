@@ -2,10 +2,13 @@
 
 if not Purity then return end
 
+<<<<<<< HEAD
 -- Create a dedicated, hidden tooltip for internal checks to avoid UI interference.
 PurityCheckTooltip = CreateFrame("GameTooltip", "PurityCheckTooltip", UIParent, "GameTooltipTemplate")
 PurityCheckTooltip:Hide()
 
+=======
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
 local DIFFICULTY_COLORS = {
     EASY = "|cff0070dd",
     MEDIUM = "|cffa335ee",
@@ -73,6 +76,7 @@ local AsceticModule = {
     selectedDifficultyId = nil,
 }
 
+<<<<<<< HEAD
 local function CanPlayerEquip(itemLink)
     if not itemLink then return false end
 
@@ -132,6 +136,8 @@ local function CheckSoldItem(bag, slot)
     end
 end
 
+=======
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
 function AsceticModule:isWeaponAllowed(itemLink)
     local difficulty = self.selectedDifficultyId
     if not difficulty and Purity.tempSelectedSpec and Purity.tempSelectedSpec.id then
@@ -205,7 +211,26 @@ function AsceticModule:InitializeOnPlayerEnterWorld()
     end
     self.selectedDifficultyId = db.asceticChallengeData.difficulty
     self.needsWeaponWarning = (self.selectedDifficultyId == "HARD")
+<<<<<<< HEAD
 	hooksecurefunc(C_Container, "UseContainerItem", CheckSoldItem)
+=======
+
+    hooksecurefunc("UseContainerItem", function(bag, slot)
+        local db = Purity:GetDB()
+        if db.isOptedIn and db.challengeTitle == self.challengeName and MerchantFrame and MerchantFrame:IsShown() then
+            local itemLink = C_Container.GetContainerItemLink(bag, slot)
+            if itemLink then
+                if self:IsItemForbidden(itemLink) then
+                    db.challengeStats = db.challengeStats or {}
+                    db.challengeStats.forbiddenItemsSold = (db.challengeStats.forbiddenItemsSold or 0) + 1
+					if _G["PurityCharacterPanel"] and _G["PurityCharacterPanel"]:IsShown() then
+                        _G["UpdateCharacterPurity"]()
+                    end
+                end
+            end
+        end
+    end)
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
 end
 
 function AsceticModule:SaveData()

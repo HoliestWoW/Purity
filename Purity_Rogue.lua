@@ -91,6 +91,7 @@ RogueModule.challenges.contract = {
                         self.initiatedFromStealth = true
                     end
                 end
+<<<<<<< HEAD
             end
 		elseif event == "COMBAT_LOG_EVENT_UNFILTERED" then
             local _, subEvent, _, sourceGUID, _, _, _, _, _, _, _, spellId, spellName = CombatLogGetCurrentEventInfo()
@@ -103,13 +104,28 @@ RogueModule.challenges.contract = {
                 if sinisterStrikeIDs[spellId] then
                     local db = Purity:GetDB()
                     if not db.challengeStats then db.challengeStats = {} end
+=======
+                local sinisterStrikeIDs = { [1752]=true, [1757]=true, [1758]=true, [1759]=true, [1760]=true, [8621]=true, [11293]=true, [11294]=true }
+                if sinisterStrikeIDs[spellId] then
+                    local db = Purity:GetDB()
+                    db.challengeStats = db.challengeStats or {}
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
                     db.challengeStats.sinisterStrikeCasts = (db.challengeStats.sinisterStrikeCasts or 0) + 1
 					if _G["PurityCharacterPanel"] and _G["PurityCharacterPanel"]:IsShown() then
                         _G["UpdateCharacterPurity"]()
                     end
                 end
             end
+<<<<<<< HEAD
 		end
+=======
+        elseif event == "COMBAT_LOG_EVENT_UNFILTERED" then
+            local _, subEvent, _, sourceGUID, _, _, _, _, _, _, _, spellId, spellName = CombatLogGetCurrentEventInfo()
+            if sourceGUID == UnitGUID("player") and subEvent == "SPELL_CAST_SUCCESS" and self:IsSpellForbidden(spellId) then
+                Purity:Violation("Used a forbidden ability:\n" .. spellName)
+            end
+        end
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
     end,
 }
 
@@ -171,12 +187,21 @@ RogueModule.challenges.foil = {
             end
         elseif event == "PLAYER_EQUIPMENT_CHANGED" then
             Purity:CheckWeaponState()
+<<<<<<< HEAD
         elseif event == "COMBAT_LOG_EVENT_UNFILTERED" then
             local _, subEvent, _, sourceGUID, _, _, _, _, _, _, _, spellId = CombatLogGetCurrentEventInfo()
             if sourceGUID == UnitGUID("player") and subEvent == "SPELL_CAST_SUCCESS" then
                 if spellId == 14251 then
                     local db = Purity:GetDB()
                     if not db.challengeStats then db.challengeStats = {} end
+=======
+        elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
+            local unit, _, _, _, spellId = ...
+            if unit == "player" then
+                if spellId == 14251 then
+                    local db = Purity:GetDB()
+                    db.challengeStats = db.challengeStats or {}
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
                     db.challengeStats.riposteCasts = (db.challengeStats.riposteCasts or 0) + 1
 					if _G["PurityCharacterPanel"] and _G["PurityCharacterPanel"]:IsShown() then
                         _G["UpdateCharacterPurity"]()

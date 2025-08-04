@@ -93,6 +93,7 @@ GetRulesText = function()
         elseif event == "COMBAT_LOG_EVENT_UNFILTERED" then
             local _, subEvent, _, sourceGUID, _, _, _, _, _, _, _, spellId, spellName = CombatLogGetCurrentEventInfo()
             if sourceGUID ~= UnitGUID("player") then return end
+<<<<<<< HEAD
 
             if subEvent == "SPELL_CAST_SUCCESS" then
                 -- Stat tracking for Mend Pet
@@ -107,6 +108,8 @@ GetRulesText = function()
                 end
             end
 
+=======
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
             if (subEvent == "SPELL_CAST_SUCCESS" or subEvent == "RANGE_DAMAGE") and self:IsSpellForbidden(spellId) then
                 Purity:Violation("Used a forbidden ranged ability or damaging trap:\n" .. spellName)
                 return
@@ -118,7 +121,25 @@ GetRulesText = function()
                     end
                 end
             end
+<<<<<<< HEAD
 		end
+=======
+        elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
+            local unit, _, _, _, spellId = ...
+            if unit == "player" then
+                -- Stat tracking for Mend Pet
+                local mendPetIDs = { [136]=true,[3111]=true,[13542]=true,[3661]=true,[3662]=true,[13543]=true,[13544]=true }
+                if mendPetIDs[spellId] then
+                    local db = Purity:GetDB()
+                    db.challengeStats = db.challengeStats or {}
+                    db.challengeStats.mendPetCasts = (db.challengeStats.mendPetCasts or 0) + 1
+					if _G["PurityCharacterPanel"] and _G["PurityCharacterPanel"]:IsShown() then
+                        _G["UpdateCharacterPurity"]()
+                    end
+                end
+            end
+        end
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
     end,
 }
 
@@ -231,6 +252,7 @@ HunterModule.challenges.quiver = {
         elseif event == "COMBAT_LOG_EVENT_UNFILTERED" then
             local _, subEvent, _, sourceGUID, _, _, _, _, _, _, _, spellId, spellName = CombatLogGetCurrentEventInfo()
             if sourceGUID == UnitGUID("player") then
+<<<<<<< HEAD
                 if subEvent == "SPELL_CAST_SUCCESS" then
                     local aimedShotIDs = { [19434]=true,[20900]=true,[20902]=true,[20903]=true,[20904]=true,[20901]=true }
                     if aimedShotIDs[spellId] then
@@ -242,11 +264,30 @@ HunterModule.challenges.quiver = {
 						end
                     end
                 end
+=======
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
                 if string.find(subEvent, "DAMAGE") and self:IsSpellForbidden(spellId) then
                     Purity:Violation("Used a forbidden melee ability:\n" .. spellName)
                     return
                 end
             end
+<<<<<<< HEAD
+=======
+        elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
+            local unit, _, _, _, spellId = ...
+            if unit == "player" then
+                -- Stat tracking for Aimed Shot
+                local aimedShotIDs = { [19434]=true,[20900]=true,[20902]=true,[20903]=true,[20904]=true,[20901]=true }
+                if aimedShotIDs[spellId] then
+                    local db = Purity:GetDB()
+                    db.challengeStats = db.challengeStats or {}
+                    db.challengeStats.aimedShotCasts = (db.challengeStats.aimedShotCasts or 0) + 1
+					if _G["PurityCharacterPanel"] and _G["PurityCharacterPanel"]:IsShown() then
+                        _G["UpdateCharacterPurity"]()
+                    end
+                end
+            end
+>>>>>>> 0c527f9edea7fa06c43c2f7d4f470c82ac1ea1d4
         end
     end,
 }
